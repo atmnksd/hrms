@@ -1,18 +1,18 @@
-import { Pool } from "pg"
+import type {
+  AdminTask as PrismaAdminTask,
+  AttendanceSignal as PrismaAttendanceSignal,
+  DashboardTask as PrismaDashboardTask,
+  Department as PrismaDepartment,
+  DocumentEvent as PrismaDocumentEvent,
+  Employee as PrismaEmployee,
+  LeaveRequest as PrismaLeaveRequest,
+  NotificationEvent as PrismaNotificationEvent,
+  PayrollIssue as PrismaPayrollIssue,
+  ReviewCycle as PrismaReviewCycle,
+  SettingsGroup as PrismaSettingsGroup,
+} from "@prisma/client"
 
-import {
-  seedAdminTasks,
-  seedAttendanceSignals,
-  seedDashboardTasks,
-  seedDepartments,
-  seedDocumentEvents,
-  seedEmployees,
-  seedLeaveRequests,
-  seedNotificationEvents,
-  seedPayrollIssues,
-  seedReviewCycles,
-  seedSettingsGroups,
-} from "@/lib/hrms-backend/seed"
+import { prisma } from "@/lib/prisma"
 import type {
   AdminTask,
   AttendanceSignal,
@@ -27,457 +27,397 @@ import type {
   NotificationEvent,
   PayrollIssue,
   RepositoryResult,
-  RepositorySource,
   ReviewCycle,
   SettingsGroup,
 } from "@/lib/hrms-backend/types"
 
-type SeedStore = {
-  employees: Employee[]
-  departments: Department[]
-  leaveRequests: LeaveRequest[]
-  attendanceSignals: AttendanceSignal[]
-  payrollIssues: PayrollIssue[]
-  reviewCycles: ReviewCycle[]
-  documentEvents: DocumentEvent[]
-  notificationEvents: NotificationEvent[]
-  settingsGroups: SettingsGroup[]
-  adminTasks: AdminTask[]
-  dashboardTasks: DashboardTask[]
-}
-
-declare global {
-  var __hrmsSeedStore__: SeedStore | undefined
-  var __hrmsPgPool__: Pool | undefined
-}
-
-function cloneStore(): SeedStore {
+function wrapResult<T>(data: T): RepositoryResult<T> {
   return {
-    employees: structuredClone(seedEmployees),
-    departments: structuredClone(seedDepartments),
-    leaveRequests: structuredClone(seedLeaveRequests),
-    attendanceSignals: structuredClone(seedAttendanceSignals),
-    payrollIssues: structuredClone(seedPayrollIssues),
-    reviewCycles: structuredClone(seedReviewCycles),
-    documentEvents: structuredClone(seedDocumentEvents),
-    notificationEvents: structuredClone(seedNotificationEvents),
-    settingsGroups: structuredClone(seedSettingsGroups),
-    adminTasks: structuredClone(seedAdminTasks),
-    dashboardTasks: structuredClone(seedDashboardTasks),
+    data,
+    source: "postgres",
   }
 }
 
-function getSeedStore() {
-  globalThis.__hrmsSeedStore__ ??= cloneStore()
-  return globalThis.__hrmsSeedStore__
+function toIsoDate(value: Date) {
+  return value.toISOString().slice(0, 10)
 }
 
-function getPool() {
-  if (!process.env.DATABASE_URL) {
-    return null
-  }
-
-  globalThis.__hrmsPgPool__ ??= new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl:
-      process.env.NODE_ENV === "production"
-        ? { rejectUnauthorized: false }
-        : undefined,
-  })
-
-  return globalThis.__hrmsPgPool__
-}
-
-async function withPostgresFallback<T>(
-  run: (pool: Pool) => Promise<T>,
-  fallback: () => T | Promise<T>,
-): Promise<RepositoryResult<T>> {
-  const pool = getPool()
-
-  if (!pool) {
-    return { data: await fallback(), source: "seed" }
-  }
-
-  try {
-    const data = await run(pool)
-    return { data, source: "postgres" }
-  } catch {
-    return { data: await fallback(), source: "seed" }
-  }
-}
-
-function computeDashboardSummary(store: SeedStore): DashboardSummary {
-  const headcount = store.employees.length
-  const openRequests = store.leaveRequests.filter(
-    (request) => request.status !== "Approved",
-  ).length
-  const verifiedPayroll = store.employees.filter(
-    (employee) => employee.payrollBankStatus === "Verified",
-  ).length
-  const payrollReadyPercent = Math.round((verifiedPayroll / headcount) * 100)
-  const remoteCount = store.employees.filter(
-    (employee) => employee.status === "Remote",
-  ).length
-  const attendanceRate = Number(
-    ((headcount - remoteCount * 0.2) / headcount * 100).toFixed(1),
-  )
-
+function mapEmployee(record: PrismaEmployee): Employee {
   return {
-    headcount,
-    openRequests,
-    payrollReadyPercent,
-    attendanceRate,
+    id: record.id,
+    fullName: record.fullName,
+    email: record.email,
+    role: record.role,
+    departmentId: record.departmentId,
+    departmentName: record.departmentName,
+    manager: record.manager,
+    employmentType: record.employmentType,
+    location: record.location,
+    phoneNumber: record.phoneNumber,
+    emergencyContact: record.emergencyContact,
+    compensationBand: record.compensationBand,
+    payrollBankStatus: record.payrollBankStatus,
+    status: record.status as Employee["status"],
+    joiningDate: toIsoDate(record.joiningDate),
+  }
+}
+
+function mapDepartment(record: PrismaDepartment): Department {
+  return {
+    id: record.id,
+    name: record.name,
+    lead: record.lead,
+    budgetStatus: record.budgetStatus,
+    employeeCount: record.employeeCount,
+    openRoles: record.openRoles,
+  }
+}
+
+function mapLeaveRequest(record: PrismaLeaveRequest): LeaveRequest {
+  return {
+    id: record.id,
+    employeeName: record.employeeName,
+    leaveType: record.leaveType,
+    dateRange: record.dateRange,
+    status: record.status,
+  }
+}
+
+function mapAttendanceSignal(record: PrismaAttendanceSignal): AttendanceSignal {
+  return {
+    id: record.id,
+    title: record.title,
+    summary: record.summary,
+  }
+}
+
+function mapPayrollIssue(record: PrismaPayrollIssue): PayrollIssue {
+  return {
+    id: record.id,
+    employeeName: record.employeeName,
+    issue: record.issue,
+    owner: record.owner,
+    priority: record.priority,
+  }
+}
+
+function mapReviewCycle(record: PrismaReviewCycle): ReviewCycle {
+  return {
+    id: record.id,
+    title: record.title,
+    meta: record.meta,
+    status: record.status,
+  }
+}
+
+function mapDocumentEvent(record: PrismaDocumentEvent): DocumentEvent {
+  return {
+    id: record.id,
+    title: record.title,
+    meta: record.meta,
+    status: record.status,
+  }
+}
+
+function mapNotificationEvent(record: PrismaNotificationEvent): NotificationEvent {
+  return {
+    id: record.id,
+    title: record.title,
+    meta: record.meta,
+    status: record.status,
+  }
+}
+
+function mapSettingsGroup(record: PrismaSettingsGroup): SettingsGroup {
+  return {
+    id: record.id,
+    name: record.name,
+    description: record.description,
+  }
+}
+
+function mapAdminTask(record: PrismaAdminTask): AdminTask {
+  return {
+    id: record.id,
+    title: record.title,
+    description: record.description,
+  }
+}
+
+function mapDashboardTask(record: PrismaDashboardTask): DashboardTask {
+  return {
+    id: record.id,
+    employeeName: record.employeeName,
+    task: record.task,
+    owner: record.owner,
+    status: record.status,
   }
 }
 
 export async function listEmployees() {
-  return withPostgresFallback(
-    async (pool) => {
-      const result = await pool.query<Employee>(
-        `
-          select
-            id,
-            full_name as "fullName",
-            email,
-            role,
-            department_id as "departmentId",
-            department_name as "departmentName",
-            manager,
-            employment_type as "employmentType",
-            location,
-            phone_number as "phoneNumber",
-            emergency_contact as "emergencyContact",
-            compensation_band as "compensationBand",
-            payroll_bank_status as "payrollBankStatus",
-            status,
-            joining_date as "joiningDate"
-          from employees
-          order by full_name asc
-        `,
-      )
-
-      return result.rows
+  const records = await prisma.employee.findMany({
+    orderBy: {
+      fullName: "asc",
     },
-    () => getSeedStore().employees,
-  )
+  })
+
+  return wrapResult(records.map(mapEmployee))
 }
 
 export async function getEmployeeById(employeeId: string) {
-  return withPostgresFallback(
-    async (pool) => {
-      const result = await pool.query<Employee>(
-        `
-          select
-            id,
-            full_name as "fullName",
-            email,
-            role,
-            department_id as "departmentId",
-            department_name as "departmentName",
-            manager,
-            employment_type as "employmentType",
-            location,
-            phone_number as "phoneNumber",
-            emergency_contact as "emergencyContact",
-            compensation_band as "compensationBand",
-            payroll_bank_status as "payrollBankStatus",
-            status,
-            joining_date as "joiningDate"
-          from employees
-          where id = $1
-          limit 1
-        `,
-        [employeeId],
-      )
-
-      return result.rows[0] ?? null
+  const record = await prisma.employee.findUnique({
+    where: {
+      id: employeeId,
     },
-    () => getSeedStore().employees.find((employee) => employee.id === employeeId) ?? null,
-  )
+  })
+
+  return wrapResult(record ? mapEmployee(record) : null)
 }
 
 export async function createEmployee(
   input: Omit<Employee, "id">,
 ): Promise<RepositoryResult<Employee>> {
-  return withPostgresFallback(
-    async (pool) => {
-      const result = await pool.query<Employee>(
-        `
-          insert into employees (
-            full_name,
-            email,
-            role,
-            department_id,
-            department_name,
-            manager,
-            employment_type,
-            location,
-            phone_number,
-            emergency_contact,
-            compensation_band,
-            payroll_bank_status,
-            status,
-            joining_date
-          )
-          values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
-          returning
-            id,
-            full_name as "fullName",
-            email,
-            role,
-            department_id as "departmentId",
-            department_name as "departmentName",
-            manager,
-            employment_type as "employmentType",
-            location,
-            phone_number as "phoneNumber",
-            emergency_contact as "emergencyContact",
-            compensation_band as "compensationBand",
-            payroll_bank_status as "payrollBankStatus",
-            status,
-            joining_date as "joiningDate"
-        `,
-        [
-          input.fullName,
-          input.email,
-          input.role,
-          input.departmentId,
-          input.departmentName,
-          input.manager,
-          input.employmentType,
-          input.location,
-          input.phoneNumber,
-          input.emergencyContact,
-          input.compensationBand,
-          input.payrollBankStatus,
-          input.status,
-          input.joiningDate,
-        ],
-      )
+  const record = await prisma.employee.create({
+    data: {
+      fullName: input.fullName,
+      email: input.email.toLowerCase(),
+      role: input.role,
+      departmentId: input.departmentId,
+      departmentName: input.departmentName,
+      manager: input.manager,
+      employmentType: input.employmentType,
+      location: input.location,
+      phoneNumber: input.phoneNumber,
+      emergencyContact: input.emergencyContact,
+      compensationBand: input.compensationBand,
+      payrollBankStatus: input.payrollBankStatus,
+      status: input.status,
+      joiningDate: new Date(input.joiningDate),
+    },
+  })
 
-      return result.rows[0]
-    },
-    () => {
-      const store = getSeedStore()
-      const employee: Employee = {
-        ...input,
-        id: `emp-${String(store.employees.length + 1).padStart(3, "0")}`,
-      }
-      store.employees.unshift(employee)
-      return employee
-    },
-  )
+  return wrapResult(mapEmployee(record))
 }
 
 export async function updateEmployee(
   employeeId: string,
   patch: Partial<Omit<Employee, "id">>,
 ): Promise<RepositoryResult<Employee | null>> {
-  return withPostgresFallback(
-    async (pool) => {
-      const existing = await getEmployeeById(employeeId)
-
-      if (!existing.data) {
-        return null
-      }
-
-      const next = { ...existing.data, ...patch }
-      const result = await pool.query<Employee>(
-        `
-          update employees
-          set
-            full_name = $2,
-            email = $3,
-            role = $4,
-            department_id = $5,
-            department_name = $6,
-            manager = $7,
-            employment_type = $8,
-            location = $9,
-            phone_number = $10,
-            emergency_contact = $11,
-            compensation_band = $12,
-            payroll_bank_status = $13,
-            status = $14,
-            joining_date = $15
-          where id = $1
-          returning
-            id,
-            full_name as "fullName",
-            email,
-            role,
-            department_id as "departmentId",
-            department_name as "departmentName",
-            manager,
-            employment_type as "employmentType",
-            location,
-            phone_number as "phoneNumber",
-            emergency_contact as "emergencyContact",
-            compensation_band as "compensationBand",
-            payroll_bank_status as "payrollBankStatus",
-            status,
-            joining_date as "joiningDate"
-        `,
-        [
-          employeeId,
-          next.fullName,
-          next.email,
-          next.role,
-          next.departmentId,
-          next.departmentName,
-          next.manager,
-          next.employmentType,
-          next.location,
-          next.phoneNumber,
-          next.emergencyContact,
-          next.compensationBand,
-          next.payrollBankStatus,
-          next.status,
-          next.joiningDate,
-        ],
-      )
-
-      return result.rows[0] ?? null
+  const existing = await prisma.employee.findUnique({
+    where: {
+      id: employeeId,
     },
-    () => {
-      const store = getSeedStore()
-      const index = store.employees.findIndex((employee) => employee.id === employeeId)
+  })
 
-      if (index === -1) {
-        return null
-      }
+  if (!existing) {
+    return wrapResult(null)
+  }
 
-      store.employees[index] = {
-        ...store.employees[index],
-        ...patch,
-      }
-
-      return store.employees[index]
+  const record = await prisma.employee.update({
+    where: {
+      id: employeeId,
     },
-  )
+    data: {
+      ...(patch.fullName !== undefined ? { fullName: patch.fullName } : {}),
+      ...(patch.email !== undefined ? { email: patch.email.toLowerCase() } : {}),
+      ...(patch.role !== undefined ? { role: patch.role } : {}),
+      ...(patch.departmentId !== undefined
+        ? { departmentId: patch.departmentId }
+        : {}),
+      ...(patch.departmentName !== undefined
+        ? { departmentName: patch.departmentName }
+        : {}),
+      ...(patch.manager !== undefined ? { manager: patch.manager } : {}),
+      ...(patch.employmentType !== undefined
+        ? { employmentType: patch.employmentType }
+        : {}),
+      ...(patch.location !== undefined ? { location: patch.location } : {}),
+      ...(patch.phoneNumber !== undefined
+        ? { phoneNumber: patch.phoneNumber }
+        : {}),
+      ...(patch.emergencyContact !== undefined
+        ? { emergencyContact: patch.emergencyContact }
+        : {}),
+      ...(patch.compensationBand !== undefined
+        ? { compensationBand: patch.compensationBand }
+        : {}),
+      ...(patch.payrollBankStatus !== undefined
+        ? { payrollBankStatus: patch.payrollBankStatus }
+        : {}),
+      ...(patch.status !== undefined ? { status: patch.status } : {}),
+      ...(patch.joiningDate !== undefined
+        ? { joiningDate: new Date(patch.joiningDate) }
+        : {}),
+    },
+  })
+
+  return wrapResult(mapEmployee(record))
 }
 
 export async function listDepartments() {
-  return withPostgresFallback(
-    async (pool) => {
-      const result = await pool.query<Department>(
-        `
-          select
-            id,
-            name,
-            lead,
-            budget_status as "budgetStatus",
-            employee_count as "employeeCount",
-            open_roles as "openRoles"
-          from departments
-          order by name asc
-        `,
-      )
-
-      return result.rows
+  const records = await prisma.department.findMany({
+    orderBy: {
+      name: "asc",
     },
-    () => getSeedStore().departments,
-  )
+  })
+
+  return wrapResult(records.map(mapDepartment))
 }
 
 export async function listLeaveRequests() {
-  return withPostgresFallback(
-    async () => getSeedStore().leaveRequests,
-    () => getSeedStore().leaveRequests,
-  )
+  const records = await prisma.leaveRequest.findMany({
+    orderBy: {
+      id: "desc",
+    },
+  })
+
+  return wrapResult(records.map(mapLeaveRequest))
 }
 
 export async function listAttendanceSignals() {
-  return withPostgresFallback(
-    async () => getSeedStore().attendanceSignals,
-    () => getSeedStore().attendanceSignals,
-  )
+  const records = await prisma.attendanceSignal.findMany({
+    orderBy: {
+      id: "desc",
+    },
+  })
+
+  return wrapResult(records.map(mapAttendanceSignal))
 }
 
 export async function listPayrollIssues() {
-  return withPostgresFallback(
-    async () => getSeedStore().payrollIssues,
-    () => getSeedStore().payrollIssues,
-  )
+  const records = await prisma.payrollIssue.findMany({
+    orderBy: {
+      id: "desc",
+    },
+  })
+
+  return wrapResult(records.map(mapPayrollIssue))
 }
 
 export async function listReviewCycles() {
-  return withPostgresFallback(
-    async () => getSeedStore().reviewCycles,
-    () => getSeedStore().reviewCycles,
-  )
+  const records = await prisma.reviewCycle.findMany({
+    orderBy: {
+      id: "desc",
+    },
+  })
+
+  return wrapResult(records.map(mapReviewCycle))
 }
 
 export async function listDocumentEvents() {
-  return withPostgresFallback(
-    async () => getSeedStore().documentEvents,
-    () => getSeedStore().documentEvents,
-  )
+  const records = await prisma.documentEvent.findMany({
+    orderBy: {
+      id: "desc",
+    },
+  })
+
+  return wrapResult(records.map(mapDocumentEvent))
 }
 
 export async function listNotificationEvents() {
-  return withPostgresFallback(
-    async () => getSeedStore().notificationEvents,
-    () => getSeedStore().notificationEvents,
-  )
+  const records = await prisma.notificationEvent.findMany({
+    orderBy: {
+      id: "desc",
+    },
+  })
+
+  return wrapResult(records.map(mapNotificationEvent))
 }
 
 export async function listSettingsGroups() {
-  return withPostgresFallback(
-    async () => getSeedStore().settingsGroups,
-    () => getSeedStore().settingsGroups,
-  )
+  const records = await prisma.settingsGroup.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  })
+
+  return wrapResult(records.map(mapSettingsGroup))
 }
 
 export async function listAdminTasks() {
-  return withPostgresFallback(
-    async () => getSeedStore().adminTasks,
-    () => getSeedStore().adminTasks,
-  )
+  const records = await prisma.adminTask.findMany({
+    orderBy: {
+      id: "desc",
+    },
+  })
+
+  return wrapResult(records.map(mapAdminTask))
 }
 
 export async function listDashboardTasks() {
-  return withPostgresFallback(
-    async () => getSeedStore().dashboardTasks,
-    () => getSeedStore().dashboardTasks,
-  )
+  const records = await prisma.dashboardTask.findMany({
+    orderBy: {
+      id: "desc",
+    },
+  })
+
+  return wrapResult(records.map(mapDashboardTask))
 }
 
 export async function getDashboardSummary() {
-  return withPostgresFallback(
-    async () => computeDashboardSummary(getSeedStore()),
-    () => computeDashboardSummary(getSeedStore()),
-  )
+  const [headcount, openRequests, verifiedPayroll, remoteCount] = await Promise.all([
+    prisma.employee.count(),
+    prisma.leaveRequest.count({
+      where: {
+        status: {
+          not: "Approved",
+        },
+      },
+    }),
+    prisma.employee.count({
+      where: {
+        payrollBankStatus: "Verified",
+      },
+    }),
+    prisma.employee.count({
+      where: {
+        status: "Remote",
+      },
+    }),
+  ])
+
+  const summary: DashboardSummary = {
+    headcount,
+    openRequests,
+    payrollReadyPercent:
+      headcount === 0 ? 0 : Math.round((verifiedPayroll / headcount) * 100),
+    attendanceRate:
+      headcount === 0
+        ? 0
+        : Number(
+            ((((headcount - remoteCount * 0.2) / headcount) * 100).toFixed(1)),
+          ),
+  }
+
+  return wrapResult(summary)
 }
 
-export async function attemptLogin(payload: LoginPayload): Promise<RepositoryResult<LoginResult>> {
-  const employees = await listEmployees()
-  const user = employees.data.find(
-    (employee) => employee.email.toLowerCase() === payload.email.toLowerCase(),
-  )
+export async function attemptLogin(
+  payload: LoginPayload,
+): Promise<RepositoryResult<LoginResult>> {
+  const record = await prisma.employee.findUnique({
+    where: {
+      email: payload.email.toLowerCase(),
+    },
+  })
 
+  const user = record ? mapEmployee(record) : null
   const ok = Boolean(user) && payload.password.length >= 8
 
   if (!ok || !user) {
-    return {
-      source: employees.source as RepositorySource,
-      data: {
-        ok: false,
-        message: "Invalid credentials for the sample HRMS workspace",
-      },
-    }
+    return wrapResult({
+      ok: false,
+      message: "Invalid credentials for the sample HRMS workspace",
+    })
   }
 
-  return {
-    source: employees.source as RepositorySource,
-    data: {
-      ok: true,
-      user: {
-        employeeId: user.id,
-        fullName: user.fullName,
-        role: user.role,
-      },
-      message: "Login successful",
+  return wrapResult({
+    ok: true,
+    user: {
+      employeeId: user.id,
+      fullName: user.fullName,
+      role: user.role,
     },
-  }
+    message: "Login successful",
+  })
 }

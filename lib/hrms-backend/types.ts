@@ -112,7 +112,7 @@ export type LoginResult = {
   message: string
 }
 
-export type RepositorySource = "seed" | "postgres"
+export type RepositorySource = "postgres"
 
 export type RepositoryResult<T> = {
   data: T

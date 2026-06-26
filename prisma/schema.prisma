@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Employee {
+  id                String   @id @default(dbgenerated("('emp-'::text || lpad(nextval('employees_id_seq'::regclass)::text, 3, '0'::text))"))
+  fullName          String   @map("full_name")
+  email             String   @unique
+  role              String
+  departmentId      String   @map("department_id")
+  departmentName    String   @map("department_name")
+  manager           String
+  employmentType    String   @map("employment_type")
+  location          String
+  phoneNumber       String   @map("phone_number")
+  emergencyContact  String   @map("emergency_contact")
+  compensationBand  String   @map("compensation_band")
+  payrollBankStatus String   @map("payroll_bank_status")
+  status            String
+  joiningDate       DateTime @db.Date @map("joining_date")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @default(now()) @map("updated_at")
+
+  @@map("employees")
+}
+
+model Department {
+  id            String   @id
+  name          String
+  lead          String
+  budgetStatus  String   @map("budget_status")
+  employeeCount Int      @map("employee_count")
+  openRoles     Int      @map("open_roles")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @map("updated_at")
+
+  @@map("departments")
+}
+
+model LeaveRequest {
+  id           String   @id
+  employeeName String   @map("employee_name")
+  leaveType    String   @map("leave_type")
+  dateRange    String   @map("date_range")
+  status       String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at")
+
+  @@map("leave_requests")
+}
+
+model AttendanceSignal {
+  id        String   @id
+  title     String
+  summary   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("attendance_signals")
+}
+
+model PayrollIssue {
+  id           String   @id
+  employeeName String   @map("employee_name")
+  issue        String
+  owner        String
+  priority     String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at")
+
+  @@map("payroll_issues")
+}
+
+model ReviewCycle {
+  id        String   @id
+  title     String
+  meta      String
+  status    String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("review_cycles")
+}
+
+model DocumentEvent {
+  id        String   @id
+  title     String
+  meta      String
+  status    String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("document_events")
+}
+
+model NotificationEvent {
+  id        String   @id
+  title     String
+  meta      String
+  status    String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("notification_events")
+}
+
+model SettingsGroup {
+  id          String   @id
+  name        String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+
+  @@map("settings_groups")
+}
+
+model AdminTask {
+  id          String   @id
+  title       String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+
+  @@map("admin_tasks")
+}
+
+model DashboardTask {
+  id           String   @id
+  employeeName String   @map("employee_name")
+  task         String
+  owner        String
+  status       String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at")
+
+  @@map("dashboard_tasks")
+}

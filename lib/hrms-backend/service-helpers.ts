@@ -25,8 +25,9 @@ type ScreenRuntimePayload = {
   }
 }
 
-function backendLabel(source: "seed" | "postgres") {
-  return source === "postgres" ? "PostgreSQL data" : "Seeded API data"
+function backendLabel(source: RepositorySource) {
+  void source
+  return "PostgreSQL data"
 }
 
 export async function buildDashboardScreen(
@@ -150,7 +151,7 @@ export async function buildEmployeeProfileScreen(
     return {
       screen,
       backend: {
-        source: "seed",
+        source: "postgres",
         label: "No employee selected",
       },
     }
@@ -197,7 +198,7 @@ export async function buildEmployeeEditScreen(
     return {
       screen,
       backend: {
-        source: "seed",
+        source: "postgres",
         label: "No employee selected",
       },
     }

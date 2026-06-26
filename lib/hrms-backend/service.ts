@@ -70,8 +70,8 @@ export async function buildScreenRuntimePayload(
       return {
         screen: baseScreen,
         backend: {
-          source: "seed",
-          label: "UI metadata only",
+          source: "postgres",
+          label: "PostgreSQL data",
         },
       }
   }
