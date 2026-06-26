@@ -1,0 +1,52 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "HRMS: Start Postgres",
+      "type": "shell",
+      "command": "npm run db:up",
+      "problemMatcher": []
+    },
+    {
+      "label": "HRMS: Bootstrap Database",
+      "type": "shell",
+      "command": "npm run db:setup",
+      "problemMatcher": [],
+      "dependsOn": ["HRMS: Start Postgres"],
+      "dependsOrder": "sequence"
+    },
+    {
+      "label": "HRMS: Next Dev Server",
+      "type": "shell",
+      "command": "npm run dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "."
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Ready in .*"
+        }
+      }
+    },
+    {
+      "label": "HRMS: Full Stack Dev",
+      "dependsOn": ["HRMS: Bootstrap Database", "HRMS: Next Dev Server"],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "HRMS: Stop Postgres",
+      "type": "shell",
+      "command": "npm run db:down",
+      "problemMatcher": []
+    }
+  ]
+}

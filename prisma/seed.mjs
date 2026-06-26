@@ -25,20 +25,9 @@ async function main() {
   const client = await pool.connect()
 
   try {
-    const existingEmployees = await client.query(
-      "select count(*)::int as count from employees",
-    )
-
-    const employeeCount = existingEmployees.rows[0]?.count ?? 0
-
-    if (employeeCount > 0) {
-      console.log("Seed skipped: database already contains employee records.")
-      return
-    }
-
     const sql = await readFile(path.join(__dirname, "seed.sql"), "utf8")
     await client.query(sql)
-    console.log("Seed complete: base HRMS data inserted.")
+    console.log("Seed complete: HRMS base data synchronized.")
   } finally {
     client.release()
     await pool.end()

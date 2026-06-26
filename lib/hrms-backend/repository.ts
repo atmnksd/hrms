@@ -1,5 +1,8 @@
+import { randomUUID } from "node:crypto"
+
 import type {
   AdminTask as PrismaAdminTask,
+  AttendanceEntry as PrismaAttendanceEntry,
   AttendanceSignal as PrismaAttendanceSignal,
   DashboardTask as PrismaDashboardTask,
   Department as PrismaDepartment,
@@ -8,17 +11,21 @@ import type {
   LeaveRequest as PrismaLeaveRequest,
   NotificationEvent as PrismaNotificationEvent,
   PayrollIssue as PrismaPayrollIssue,
+  Prisma,
   ReviewCycle as PrismaReviewCycle,
   SettingsGroup as PrismaSettingsGroup,
 } from "@prisma/client"
+import { compare } from "bcryptjs"
 
 import { prisma } from "@/lib/prisma"
 import type {
   AdminTask,
+  AttendanceEntry,
   AttendanceSignal,
   DashboardSummary,
   DashboardTask,
   Department,
+  DepartmentOrgNode,
   DocumentEvent,
   Employee,
   LeaveRequest,
@@ -30,6 +37,9 @@ import type {
   ReviewCycle,
   SettingsGroup,
 } from "@/lib/hrms-backend/types"
+
+const DEFAULT_EMPLOYEE_PASSWORD_HASH =
+  "$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m"
 
 function wrapResult<T>(data: T): RepositoryResult<T> {
   return {
@@ -88,6 +98,19 @@ function mapAttendanceSignal(record: PrismaAttendanceSignal): AttendanceSignal {
     id: record.id,
     title: record.title,
     summary: record.summary,
+  }
+}
+
+function mapAttendanceEntry(record: PrismaAttendanceEntry): AttendanceEntry {
+  return {
+    id: record.id,
+    employeeName: record.employeeName,
+    workDate: toIsoDate(record.workDate),
+    status: record.status,
+    checkIn: record.checkIn,
+    checkOut: record.checkOut,
+    workMode: record.workMode,
+    notes: record.notes,
   }
 }
 
@@ -154,6 +177,49 @@ function mapDashboardTask(record: PrismaDashboardTask): DashboardTask {
   }
 }
 
+async function syncDepartmentEmployeeCounts(departmentIds?: string[]) {
+  const departments = departmentIds?.length
+    ? await prisma.department.findMany({
+        where: {
+          id: {
+            in: departmentIds,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      })
+    : await prisma.department.findMany({
+        select: {
+          id: true,
+          name: true,
+        },
+      })
+
+  await Promise.all(
+    departments.map(async (department) => {
+      const employeeCount = await prisma.employee.count({
+        where: {
+          OR: [
+            { departmentId: department.id },
+            { departmentName: department.name },
+          ],
+        },
+      })
+
+      await prisma.department.update({
+        where: {
+          id: department.id,
+        },
+        data: {
+          employeeCount,
+        },
+      })
+    }),
+  )
+}
+
 export async function listEmployees() {
   const records = await prisma.employee.findMany({
     orderBy: {
@@ -177,24 +243,29 @@ export async function getEmployeeById(employeeId: string) {
 export async function createEmployee(
   input: Omit<Employee, "id">,
 ): Promise<RepositoryResult<Employee>> {
+  const data: Prisma.EmployeeUncheckedCreateInput = {
+    fullName: input.fullName,
+    email: input.email.toLowerCase(),
+    passwordHash: DEFAULT_EMPLOYEE_PASSWORD_HASH,
+    role: input.role,
+    departmentId: input.departmentId,
+    departmentName: input.departmentName,
+    manager: input.manager,
+    employmentType: input.employmentType,
+    location: input.location,
+    phoneNumber: input.phoneNumber,
+    emergencyContact: input.emergencyContact,
+    compensationBand: input.compensationBand,
+    payrollBankStatus: input.payrollBankStatus,
+    status: input.status,
+    joiningDate: new Date(input.joiningDate),
+  }
+
   const record = await prisma.employee.create({
-    data: {
-      fullName: input.fullName,
-      email: input.email.toLowerCase(),
-      role: input.role,
-      departmentId: input.departmentId,
-      departmentName: input.departmentName,
-      manager: input.manager,
-      employmentType: input.employmentType,
-      location: input.location,
-      phoneNumber: input.phoneNumber,
-      emergencyContact: input.emergencyContact,
-      compensationBand: input.compensationBand,
-      payrollBankStatus: input.payrollBankStatus,
-      status: input.status,
-      joiningDate: new Date(input.joiningDate),
-    },
+    data,
   })
+
+  await syncDepartmentEmployeeCounts([record.departmentId])
 
   return wrapResult(mapEmployee(record))
 }
@@ -251,6 +322,11 @@ export async function updateEmployee(
     },
   })
 
+  await syncDepartmentEmployeeCounts([
+    existing.departmentId,
+    record.departmentId,
+  ])
+
   return wrapResult(mapEmployee(record))
 }
 
@@ -264,6 +340,114 @@ export async function listDepartments() {
   return wrapResult(records.map(mapDepartment))
 }
 
+export async function createDepartment(
+  input: Omit<Department, "employeeCount">,
+): Promise<RepositoryResult<Department>> {
+  const record = await prisma.department.create({
+    data: {
+      id: input.id,
+      name: input.name,
+      lead: input.lead,
+      budgetStatus: input.budgetStatus,
+      employeeCount: 0,
+      openRoles: input.openRoles,
+    },
+  })
+
+  await syncDepartmentEmployeeCounts([record.id])
+
+  const refreshed = await prisma.department.findUniqueOrThrow({
+    where: { id: record.id },
+  })
+
+  return wrapResult(mapDepartment(refreshed))
+}
+
+export async function updateDepartment(
+  departmentId: string,
+  patch: Partial<Omit<Department, "id" | "employeeCount">> & {
+    employeeCount?: number
+  },
+): Promise<RepositoryResult<Department | null>> {
+  const existing = await prisma.department.findUnique({
+    where: {
+      id: departmentId,
+    },
+  })
+
+  if (!existing) {
+    return wrapResult(null)
+  }
+
+  const record = await prisma.department.update({
+    where: {
+      id: departmentId,
+    },
+    data: {
+      ...(patch.name !== undefined ? { name: patch.name } : {}),
+      ...(patch.lead !== undefined ? { lead: patch.lead } : {}),
+      ...(patch.budgetStatus !== undefined
+        ? { budgetStatus: patch.budgetStatus }
+        : {}),
+      ...(patch.openRoles !== undefined ? { openRoles: patch.openRoles } : {}),
+      ...(patch.employeeCount !== undefined
+        ? { employeeCount: patch.employeeCount }
+        : {}),
+    },
+  })
+
+  await syncDepartmentEmployeeCounts([record.id])
+
+  return wrapResult(mapDepartment(record))
+}
+
+export async function listDepartmentOrgNodes(): Promise<
+  RepositoryResult<DepartmentOrgNode[]>
+> {
+  const [departments, employees] = await Promise.all([
+    prisma.department.findMany({
+      orderBy: {
+        name: "asc",
+      },
+    }),
+    prisma.employee.findMany({
+      orderBy: {
+        fullName: "asc",
+      },
+    }),
+  ])
+
+  const nodes = departments.map((department) => {
+    const departmentEmployees = employees.filter(
+      (employee) =>
+        employee.departmentId === department.id ||
+        employee.departmentName === department.name,
+    )
+
+    const leadRecord =
+      departmentEmployees.find((employee) => employee.fullName === department.lead) ?? null
+
+    const directReports = leadRecord
+      ? departmentEmployees
+          .filter((employee) => employee.manager === leadRecord.fullName)
+          .map((employee) => employee.fullName)
+      : departmentEmployees
+          .filter((employee) => employee.fullName !== department.lead)
+          .slice(0, 6)
+          .map((employee) => employee.fullName)
+
+    return {
+      id: department.id,
+      name: department.name,
+      lead: department.lead,
+      employeeCount: departmentEmployees.length,
+      directReports,
+    }
+  })
+
+  return wrapResult(nodes)
+}
+
 export async function listLeaveRequests() {
   const records = await prisma.leaveRequest.findMany({
     orderBy: {
@@ -274,6 +458,53 @@ export async function listLeaveRequests() {
   return wrapResult(records.map(mapLeaveRequest))
 }
 
+export async function createLeaveRequest(
+  input: Omit<LeaveRequest, "id">,
+): Promise<RepositoryResult<LeaveRequest>> {
+  const record = await prisma.leaveRequest.create({
+    data: {
+      id: `leave-${randomUUID().slice(0, 8)}`,
+      employeeName: input.employeeName,
+      leaveType: input.leaveType,
+      dateRange: input.dateRange,
+      status: input.status,
+    },
+  })
+
+  return wrapResult(mapLeaveRequest(record))
+}
+
+export async function updateLeaveRequest(
+  requestId: string,
+  patch: Partial<Omit<LeaveRequest, "id">>,
+): Promise<RepositoryResult<LeaveRequest | null>> {
+  const existing = await prisma.leaveRequest.findUnique({
+    where: {
+      id: requestId,
+    },
+  })
+
+  if (!existing) {
+    return wrapResult(null)
+  }
+
+  const record = await prisma.leaveRequest.update({
+    where: {
+      id: requestId,
+    },
+    data: {
+      ...(patch.employeeName !== undefined
+        ? { employeeName: patch.employeeName }
+        : {}),
+      ...(patch.leaveType !== undefined ? { leaveType: patch.leaveType } : {}),
+      ...(patch.dateRange !== undefined ? { dateRange: patch.dateRange } : {}),
+      ...(patch.status !== undefined ? { status: patch.status } : {}),
+    },
+  })
+
+  return wrapResult(mapLeaveRequest(record))
+}
+
 export async function listAttendanceSignals() {
   const records = await prisma.attendanceSignal.findMany({
     orderBy: {
@@ -282,6 +513,74 @@ export async function listAttendanceSignals() {
   })
 
   return wrapResult(records.map(mapAttendanceSignal))
+}
+
+export async function listAttendanceEntries() {
+  const records = await prisma.attendanceEntry.findMany({
+    orderBy: [
+      {
+        workDate: "desc",
+      },
+      {
+        employeeName: "asc",
+      },
+    ],
+  })
+
+  return wrapResult(records.map(mapAttendanceEntry))
+}
+
+export async function createAttendanceEntry(
+  input: Omit<AttendanceEntry, "id">,
+): Promise<RepositoryResult<AttendanceEntry>> {
+  const record = await prisma.attendanceEntry.create({
+    data: {
+      id: `att-entry-${randomUUID().slice(0, 8)}`,
+      employeeName: input.employeeName,
+      workDate: new Date(input.workDate),
+      status: input.status,
+      checkIn: input.checkIn,
+      checkOut: input.checkOut,
+      workMode: input.workMode,
+      notes: input.notes,
+    },
+  })
+
+  return wrapResult(mapAttendanceEntry(record))
+}
+
+export async function updateAttendanceEntry(
+  entryId: string,
+  patch: Partial<Omit<AttendanceEntry, "id">>,
+): Promise<RepositoryResult<AttendanceEntry | null>> {
+  const existing = await prisma.attendanceEntry.findUnique({
+    where: {
+      id: entryId,
+    },
+  })
+
+  if (!existing) {
+    return wrapResult(null)
+  }
+
+  const record = await prisma.attendanceEntry.update({
+    where: {
+      id: entryId,
+    },
+    data: {
+      ...(patch.employeeName !== undefined
+        ? { employeeName: patch.employeeName }
+        : {}),
+      ...(patch.workDate !== undefined ? { workDate: new Date(patch.workDate) } : {}),
+      ...(patch.status !== undefined ? { status: patch.status } : {}),
+      ...(patch.checkIn !== undefined ? { checkIn: patch.checkIn } : {}),
+      ...(patch.checkOut !== undefined ? { checkOut: patch.checkOut } : {}),
+      ...(patch.workMode !== undefined ? { workMode: patch.workMode } : {}),
+      ...(patch.notes !== undefined ? { notes: patch.notes } : {}),
+    },
+  })
+
+  return wrapResult(mapAttendanceEntry(record))
 }
 
 export async function listPayrollIssues() {
@@ -403,11 +702,34 @@ export async function attemptLogin(
       where: {
         email: normalizedEmail,
       },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        passwordHash: true,
+        role: true,
+        departmentId: true,
+        departmentName: true,
+        manager: true,
+        employmentType: true,
+        location: true,
+        phoneNumber: true,
+        emergencyContact: true,
+        compensationBand: true,
+        payrollBankStatus: true,
+        status: true,
+        joiningDate: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     }),
   ])
 
   const user = record ? mapEmployee(record) : null
-  const ok = Boolean(user) && payload.password.length >= 8
+  const passwordMatches =
+    record !== null &&
+    payload.password.length >= 8 &&
+    (await compare(payload.password, record.passwordHash))
 
   if (employeeCount === 0) {
     return wrapResult({
@@ -416,10 +738,10 @@ export async function attemptLogin(
     })
   }
 
-  if (!ok || !user) {
+  if (!passwordMatches || !user) {
     return wrapResult({
       ok: false,
-      message: "Invalid credentials for the sample HRMS workspace",
+      message: "Invalid email or password.",
     })
   }
 

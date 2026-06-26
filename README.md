@@ -21,6 +21,42 @@ Available commands:
 `npm run db:seed` runs the Prisma seed hook.
 It inserts the starter HRMS data only when the database is empty.
 
+## Local development
+
+Local development uses Dockerized PostgreSQL.
+
+1. Create a private env file from the example:
+
+```bash
+cp .env.local.example .env.local
+```
+
+2. Start the local database:
+
+```bash
+npm run db:up
+```
+
+3. Apply migrations and one-time bootstrap data:
+
+```bash
+npm run db:setup
+```
+
+4. Start the app:
+
+```bash
+npm run dev
+```
+
+You can stop the local database with:
+
+```bash
+npm run db:down
+```
+
+If you use VS Code, run the task `HRMS: Full Stack Dev`. It starts Postgres, applies Prisma bootstrap, and launches the Next.js dev server.
+
 ## Vercel deployment
 
 Deployments on Vercel automatically run Prisma migrations before the Next.js build through [vercel.json](/Users/atmaramn/data/work/gh/sampleapps/hrms/vercel.json).

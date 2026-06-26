@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server"
 
-import { getHrmsSession, HRMS_SESSION_COOKIE } from "@/lib/hrms-auth"
+import {
+  getHrmsSession,
+  getHrmsSessionCookieOptions,
+  HRMS_SESSION_COOKIE,
+} from "@/lib/hrms-auth"
 
 export async function GET() {
   const session = await getHrmsSession()
@@ -16,9 +20,7 @@ export async function DELETE() {
   })
 
   response.cookies.set(HRMS_SESSION_COOKIE, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
+    ...getHrmsSessionCookieOptions(),
     maxAge: 0,
   })
 

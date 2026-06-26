@@ -41,6 +41,25 @@ export type AttendanceSignal = {
   summary: string
 }
 
+export type AttendanceEntry = {
+  id: string
+  employeeName: string
+  workDate: string
+  status: string
+  checkIn: string
+  checkOut: string | null
+  workMode: string
+  notes: string | null
+}
+
+export type DepartmentOrgNode = {
+  id: string
+  name: string
+  lead: string
+  employeeCount: number
+  directReports: string[]
+}
+
 export type PayrollIssue = {
   id: string
   employeeName: string

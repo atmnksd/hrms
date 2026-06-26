@@ -2,35 +2,55 @@ import Link from "next/link"
 import {
   ArrowRight,
   Bell,
-  BookMarked,
   BriefcaseBusiness,
   Building2,
   CalendarCheck2,
-  CheckCircle2,
   ClipboardList,
   CreditCard,
-  FolderKanban,
+  Command,
   FileText,
-  Filter,
   Home,
   LogIn,
-  Menu,
-  MoreHorizontal,
   PencilLine,
-  Search,
   Settings2,
   Shield,
   Sparkles,
-  UserCircle2,
   UserPlus,
   Users,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenu,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import {
   EmployeeEditorForm,
   LoginForm,
 } from "@/components/hrms/hrms-forms"
+import {
+  AttendanceWorkspace,
+  DepartmentsWorkspace,
+  LeaveManagementWorkspace,
+} from "@/components/hrms/hrms-module-workspaces"
+import { HrmsSignOutButton } from "@/components/hrms/hrms-session-actions"
 import {
   type Kpi,
   type ScreenDefinition,
@@ -73,14 +93,6 @@ type HrmsShellProps = {
   } | null
 }
 
-const suiteNav = [
-  "Workforce",
-  "Talent",
-  "Compensation",
-  "Operations",
-  "Analytics",
-] as const
-
 const employeeDirectoryMap = {
   "Ava Patel": "emp-001",
   "Noah Silva": "emp-002",
@@ -100,372 +112,251 @@ export function HrmsShell({
   }
 
   const breadcrumbs = getBreadcrumbs(currentScreenKey, currentScreen, currentVersion.id)
-  const workflowTabs = getWorkflowTabs(currentScreenKey, currentVersion.id, routeContext)
   const primaryHref = getPrimaryActionHref(currentScreenKey, currentVersion.id, routeContext)
   const secondaryHref = getSecondaryActionHref(currentScreenKey, currentVersion.id)
-  const utilityStats = getUtilityStats(currentScreenKey)
+  const initials = getInitials(session?.fullName ?? "Guest User")
 
   return (
-    <main className={cn("min-h-svh px-4 py-4 sm:px-6 sm:py-6", currentVersion.theme.page)}>
-      <div className="mx-auto flex max-w-7xl flex-col gap-5">
-        <section
-          className={cn(
-            "rounded-[2rem] border px-5 py-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)]",
-            currentVersion.theme.panel,
-          )}
-        >
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex size-11 items-center justify-center rounded-[1.1rem] bg-slate-950 text-white">
-                <Building2 className="size-5" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-current/55">
-                  HRMS workspace
-                </p>
-                <div className="flex items-center gap-3">
-                  <h2 className="font-[family-name:var(--font-heading)] text-xl font-semibold tracking-[-0.03em]">
-                    Workgrid People Platform
-                  </h2>
-                  <span className="rounded-full border border-current/10 bg-black/5 px-2.5 py-1 text-xs text-current/65">
-                    Asia Pacific
-                  </span>
+    <main className={cn("min-h-svh bg-slate-100", currentVersion.theme.page)}>
+      <TooltipProvider>
+        <SidebarProvider defaultOpen>
+          <Sidebar variant="inset" collapsible="icon">
+            <SidebarHeader className="px-3 py-3">
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white">
+                  <Command className="size-4" />
                 </div>
-              </div>
-            </div>
-
-            <div className="flex flex-1 flex-col gap-3 xl:max-w-3xl xl:flex-row xl:items-center xl:justify-end">
-              <div className="flex flex-1 items-center gap-3 rounded-[1.1rem] border border-current/10 bg-black/5 px-4 py-3 text-sm text-current/50">
-                <Search className="size-4 shrink-0" />
-                <span>Search people, approvals, payroll issues, or policies</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="rounded-[1rem] border border-current/10 bg-black/5 p-3 text-current/70 transition hover:bg-black/10">
-                  <Bell className="size-4" />
-                </button>
-                <button className="rounded-[1rem] border border-current/10 bg-black/5 p-3 text-current/70 transition hover:bg-black/10">
-                  <BookMarked className="size-4" />
-                </button>
-                <div className="flex items-center gap-3 rounded-[1rem] border border-current/10 bg-black/5 px-3 py-2.5">
-                  <UserCircle2 className="size-8 text-current/70" />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-current/85">
-                      {session?.fullName ?? "Guest user"}
-                    </p>
-                    <p className="truncate text-xs text-current/55">
-                      {session?.role ?? "Unauthenticated"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {suiteNav.map((item) => (
-              <button
-                key={item}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-sm transition",
-                  item === "Workforce"
-                    ? "bg-slate-950 text-white"
-                    : "border border-current/10 bg-black/5 text-current/70 hover:bg-black/10",
-                )}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section
-          className={cn(
-            "overflow-hidden rounded-[2rem] border p-6 shadow-[0_24px_70px_rgba(15,23,42,0.12)]",
-            currentVersion.theme.hero,
-          )}
-        >
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl space-y-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-current/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em]">
-                  Employee lifecycle
-                </span>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-current/70">
-                  {currentScreen.eyebrow}
-                </p>
-                <h1 className="font-[family-name:var(--font-heading)] text-3xl leading-tight font-semibold tracking-[-0.04em] sm:text-5xl">
-                  {currentScreen.title}
-                </h1>
-                <p className="max-w-2xl text-sm leading-7 text-current/80 sm:text-base">
-                  {currentScreen.description}
-                </p>
-              </div>
-            </div>
-
-            <div className="max-w-md rounded-[1.5rem] border border-current/10 bg-black/10 p-4 text-sm leading-6 text-current/85 backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-current/70">
-                Workspace status
-              </p>
-              <div className="mt-3 grid gap-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-[1.15rem] border border-current/10 bg-white/10 px-4 py-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-current/60">
-                      Region
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-current/90">
-                      APAC South
-                    </p>
-                  </div>
-                  <div className="rounded-[1.15rem] border border-current/10 bg-white/10 px-4 py-3">
-                    <p className="text-xs uppercase tracking-[0.18em] text-current/60">
-                      Service health
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-emerald-200">
-                      Operational
-                    </p>
-                  </div>
-                </div>
-                <div className="rounded-[1.15rem] border border-current/10 bg-white/10 px-4 py-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-current/60">
-                    Business date
+                <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                  <p className="truncate text-sm font-semibold text-slate-950">
+                    PeopleGrid HRMS
                   </p>
-                  <p className="mt-1 text-sm font-medium text-current/90">
-                    June 26, 2026
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div className="grid gap-5 lg:grid-cols-[18.5rem_1fr]">
-          <aside
-            className={cn(
-              "rounded-[2rem] border p-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)]",
-              currentVersion.theme.sidebar,
-            )}
-          >
-            <div className="rounded-[1.4rem] border border-current/10 bg-white/10 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-current/60">
-                  Workspace
-                </p>
-                <Menu className="size-4 text-current/40" />
-              </div>
-              <h2 className="mt-2 font-[family-name:var(--font-heading)] text-xl font-semibold tracking-[-0.03em]">
-                {currentVersion.shellLabel}
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-current/75">
-                {currentVersion.shellDescription}
-              </p>
-              <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                <div className="rounded-[1rem] border border-current/10 bg-black/5 px-3 py-2">
-                  <p className="text-current/45">Entity</p>
-                  <p className="mt-1 font-medium text-current/80">Acme Workforce</p>
-                </div>
-                <div className="rounded-[1rem] border border-current/10 bg-black/5 px-3 py-2">
-                  <p className="text-current/45">Environment</p>
-                  <p className="mt-1 font-medium text-current/80">Production</p>
-                </div>
-              </div>
-            </div>
-
-            <nav className="mt-5 grid gap-1">
-              {currentVersion.navigation.map((itemKey) => {
-                const screen = currentVersion.screens[itemKey]
-
-                if (!screen) {
-                  return null
-                }
-
-                const Icon = navIcons[itemKey]
-                const isCurrent = itemKey === currentScreenKey
-
-                return (
-                  <Link
-                    key={itemKey}
-                    href={`/${currentVersion.id}/${getPathForScreen(itemKey)}`}
-                    className={cn(
-                      "flex items-center gap-3 rounded-[1.15rem] px-3 py-3 text-sm transition",
-                      isCurrent
-                        ? "bg-black/85 text-white shadow-[0_10px_30px_rgba(15,23,42,0.18)]"
-                        : "text-current/75 hover:bg-black/5 hover:text-current",
-                    )}
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{screen.navLabel}</p>
-                      <p
-                        className={cn(
-                          "truncate text-xs",
-                          isCurrent ? "text-white/65" : "text-current/50",
-                        )}
-                      >
-                        {screen.navHint}
-                      </p>
-                    </div>
-                  </Link>
-                )
-              })}
-            </nav>
-
-            <div className="mt-5 rounded-[1.4rem] border border-current/10 bg-black/5 p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-current/50">
-                Team inbox
-              </p>
-              <div className="mt-3 grid gap-3">
-                {utilityStats.map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between rounded-[1rem] border border-current/10 bg-white/10 px-3 py-2.5"
-                  >
-                    <span className="text-sm text-current/70">{item.label}</span>
-                    <span className="text-sm font-medium text-current/85">{item.value}</span>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                    <span className="truncate">Acme Workforce</span>
+                    <span className="size-1 rounded-full bg-slate-300" />
+                    <span>Production</span>
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
-          </aside>
+            </SidebarHeader>
 
-          <section className="flex flex-col gap-5">
-            <div
-              className={cn(
-                "rounded-[2rem] border px-5 py-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)]",
-                currentVersion.theme.panel,
-              )}
-            >
-              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-wrap items-center gap-2 text-sm text-current/55">
-                    {breadcrumbs.map((item, index) => (
-                      <div key={item.label} className="flex items-center gap-2">
-                        {index > 0 ? <ArrowRight className="size-3.5" /> : null}
-                        {item.href ? (
-                          <Link href={item.href} className="hover:text-current">
-                            {item.label}
+            <SidebarContent>
+              <SidebarGroup>
+                <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+                <SidebarMenu>
+                  {currentVersion.navigation.map((itemKey) => {
+                    const screen = currentVersion.screens[itemKey]
+
+                    if (!screen) {
+                      return null
+                    }
+
+                    const Icon = navIcons[itemKey]
+                    const isCurrent = itemKey === currentScreenKey
+
+                    return (
+                      <SidebarMenuItem key={itemKey}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isCurrent}
+                          className={cn(
+                            "h-auto rounded-2xl px-3 py-3 group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0",
+                            isCurrent
+                              ? "bg-slate-950 text-white shadow-[0_10px_24px_rgba(15,23,42,0.18)] hover:bg-slate-950 hover:text-white"
+                              : "text-slate-700 hover:bg-slate-100",
+                          )}
+                          tooltip={screen.navLabel}
+                        >
+                          <Link
+                            href={`/${currentVersion.id}/${getPathForScreen(itemKey)}`}
+                            className="flex items-center gap-3"
+                          >
+                            <div
+                              className={cn(
+                                "flex size-9 items-center justify-center rounded-xl",
+                                isCurrent ? "bg-white/10" : "bg-slate-100",
+                              )}
+                            >
+                              <Icon className="size-4 shrink-0" />
+                            </div>
+                            <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                              <p className="truncate text-sm font-medium">{screen.navLabel}</p>
+                              <p
+                                className={cn(
+                                  "truncate text-xs",
+                                  isCurrent ? "text-white/65" : "text-slate-500",
+                                )}
+                              >
+                                {screen.navHint}
+                              </p>
+                            </div>
                           </Link>
-                        ) : (
-                          <span className="text-current/85">{item.label}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {workflowTabs.map((tab) => (
-                      <Link
-                        key={tab.label}
-                        href={tab.href}
-                        className={cn(
-                          "rounded-full px-3 py-1.5 text-sm transition",
-                          tab.current
-                            ? "bg-slate-950 text-white"
-                            : "border border-current/10 bg-black/5 text-current/70 hover:bg-black/10 hover:text-current",
-                        )}
-                      >
-                        {tab.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <button className="inline-flex items-center gap-2 rounded-full border border-current/10 bg-black/5 px-3.5 py-2 text-sm text-current/70 transition hover:bg-black/10 hover:text-current">
-                    <Filter className="size-4" />
-                    Filters
-                  </button>
-                  <button className="inline-flex items-center gap-2 rounded-full border border-current/10 bg-black/5 px-3.5 py-2 text-sm text-current/70 transition hover:bg-black/10 hover:text-current">
-                    <FolderKanban className="size-4" />
-                    Saved views
-                  </button>
-                  <button className="inline-flex items-center gap-2 rounded-full border border-current/10 bg-black/5 px-3.5 py-2 text-sm text-current/70 transition hover:bg-black/10 hover:text-current">
-                    <MoreHorizontal className="size-4" />
-                    More
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className={cn(
-                "rounded-[2rem] border p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)]",
-                currentVersion.theme.panel,
-              )}
-            >
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-current/55">
-                    Page overview
-                  </p>
-                  <p className="mt-2 max-w-3xl text-sm leading-7 text-current/80">
-                    {getOperationalSummary(currentScreenKey)}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {getOperationalFlags(currentScreenKey).map((flag) => (
-                      <span
-                        key={flag}
-                        className="rounded-full border border-current/10 bg-black/5 px-3 py-1.5 text-xs font-medium text-current/70"
-                      >
-                        {flag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {primaryHref ? (
-                    <Button className="rounded-full px-4" variant="secondary" asChild>
-                      <Link href={primaryHref}>{currentScreen.primaryAction}</Link>
-                    </Button>
-                  ) : (
-                    <Button className="rounded-full px-4" variant="secondary">
-                      {currentScreen.primaryAction}
-                    </Button>
-                  )}
-                  {currentScreen.secondaryAction ? (
-                    secondaryHref ? (
-                      <Button className="rounded-full px-4" variant="outline" asChild>
-                        <Link href={secondaryHref}>{currentScreen.secondaryAction}</Link>
-                      </Button>
-                    ) : (
-                      <Button className="rounded-full px-4" variant="outline">
-                        {currentScreen.secondaryAction}
-                      </Button>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     )
-                  ) : null}
+                  })}
+                </SidebarMenu>
+              </SidebarGroup>
+            </SidebarContent>
+
+            <SidebarFooter>
+              <Separator className="mb-3" />
+              <div className="mb-3 flex items-center gap-3 rounded-2xl bg-slate-50 px-3 py-3">
+                <Avatar>
+                  <AvatarFallback>{initials}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                  <p className="truncate text-sm font-medium text-slate-900">
+                    {session?.fullName ?? "Guest User"}
+                  </p>
+                  <p className="truncate text-xs text-slate-500">
+                    {session?.role ?? "Unauthenticated"}
+                  </p>
                 </div>
               </div>
-            </div>
+              <div className="group-data-[collapsible=icon]:hidden">
+                <HrmsSignOutButton versionId={currentVersion.id} />
+              </div>
+            </SidebarFooter>
+          </Sidebar>
 
-            {currentScreen.kpis?.length ? (
-              <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {currentScreen.kpis.map((kpi) => (
-                  <KpiCard
-                    key={kpi.label}
-                    kpi={kpi}
-                    className={currentVersion.theme.card}
+          <SidebarInset className="bg-transparent md:shadow-none">
+            <div className="mx-auto flex w-full max-w-[1560px] flex-col gap-5 px-4 py-4 sm:px-6 sm:py-6">
+              <Card className="rounded-[30px] border-slate-200 bg-white">
+                <CardContent className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex items-center gap-4">
+                    <SidebarTrigger className="rounded-2xl border border-slate-200 bg-white hover:bg-slate-100" />
+                    <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+                      <Building2 className="size-5" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                        People Operations
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h1 className="font-[family-name:var(--font-heading)] text-xl font-semibold tracking-[-0.03em] text-slate-950">
+                          Workgrid HRMS
+                        </h1>
+                        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+                          Production
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-1 justify-end">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
+                      <Avatar className="size-9">
+                        <AvatarFallback>{initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-slate-900">
+                          {session?.fullName ?? "Guest User"}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">
+                          {session?.role ?? "Unauthenticated"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <section className="flex min-w-0 flex-col gap-5">
+                <Card className="rounded-[30px] border-slate-200 bg-white">
+                  <CardContent className="flex flex-col gap-5 p-6">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                          {breadcrumbs.map((item, index) => (
+                            <div key={item.label} className="flex items-center gap-2">
+                              {index > 0 ? <ArrowRight className="size-3.5" /> : null}
+                              {item.href ? (
+                                <Link href={item.href} className="hover:text-slate-900">
+                                  {item.label}
+                                </Link>
+                              ) : (
+                                <span className="text-slate-900">{item.label}</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+                            {currentScreen.eyebrow}
+                          </p>
+                          <h2 className="font-[family-name:var(--font-heading)] text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">
+                            {currentScreen.title}
+                          </h2>
+                          <p className="max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
+                            {currentScreen.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      <Card className="min-w-[280px] rounded-3xl border-slate-200 bg-slate-50 shadow-none">
+                        <CardContent className="grid gap-3 p-4">
+                          <div className="rounded-2xl bg-white px-4 py-3">
+                            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                              Signed in as
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-slate-900">
+                              {session?.fullName ?? "Guest User"}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500">
+                              {session?.role ?? "Unauthenticated"}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="rounded-[30px] border-slate-200 bg-white">
+                  <CardContent className="flex flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-wrap gap-2">
+                      {primaryHref ? (
+                        <Button className="rounded-full px-4" variant="secondary" asChild>
+                          <Link href={primaryHref}>{currentScreen.primaryAction}</Link>
+                        </Button>
+                      ) : null}
+                      {currentScreen.secondaryAction ? (
+                        secondaryHref ? (
+                          <Button className="rounded-full px-4" variant="outline" asChild>
+                            <Link href={secondaryHref}>{currentScreen.secondaryAction}</Link>
+                          </Button>
+                        ) : null
+                      ) : null}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {currentScreen.kpis?.length ? (
+                  <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    {currentScreen.kpis.map((kpi) => (
+                      <KpiCard
+                        key={kpi.label}
+                        kpi={kpi}
+                        className={currentVersion.theme.card}
+                      />
+                    ))}
+                  </section>
+                ) : null}
+
+                <section className="flex min-w-0 flex-col gap-5">
+                  <PrimaryContent
+                    screenKey={currentScreenKey}
+                    screen={currentScreen}
+                    version={currentVersion}
+                    routeContext={routeContext}
                   />
-                ))}
+                </section>
               </section>
-            ) : null}
-
-            <section className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-              <div className="flex flex-col gap-5">
-                <PrimaryContent
-                  screenKey={currentScreenKey}
-                  screen={currentScreen}
-                  version={currentVersion}
-                  routeContext={routeContext}
-                />
-              </div>
-              <div className="flex flex-col gap-5">
-                <OperationalChecklistPanel screen={currentScreen} version={currentVersion} />
-                <ActivityRailPanel screenKey={currentScreenKey} version={currentVersion} />
-              </div>
-            </section>
-          </section>
-        </div>
-      </div>
+            </div>
+          </SidebarInset>
+        </SidebarProvider>
+      </TooltipProvider>
     </main>
   )
 }
@@ -518,19 +409,19 @@ function LoginWorkspace({
             <div className="grid gap-4 md:grid-cols-3">
               {[
                 {
-                  label: "Workforce records",
-                  value: "248",
-                  meta: "Active employee profiles",
+                  label: "Employee records",
+                  value: "Profiles",
+                  meta: "Access workforce profiles, reporting lines, and core employment data.",
                 },
                 {
-                  label: "Pending approvals",
-                  value: "19",
-                  meta: "Leave, onboarding, and payroll actions",
+                  label: "Approvals",
+                  value: "Workflows",
+                  meta: "Complete leave, onboarding, and payroll actions from the same workspace.",
                 },
                 {
-                  label: "Payroll readiness",
-                  value: "96%",
-                  meta: "Current monthly close status",
+                  label: "Payroll",
+                  value: "Controls",
+                  meta: "Review compensation records, bank details, and monthly processing tasks.",
                 },
               ].map((item) => (
                 <div
@@ -669,23 +560,6 @@ function DashboardScreen({
 }) {
   return (
     <>
-      <SurfaceCard title="Operations pulse" version={version}>
-        <div className="grid gap-3 md:grid-cols-3">
-          {(screen.cards ?? []).map((card) => (
-            <div
-              key={card.title}
-              className="rounded-[1.35rem] border border-current/10 bg-black/5 p-4"
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-current/55">
-                {card.title}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-current/80">
-                {card.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </SurfaceCard>
       <EmployeeOperationsTable screen={screen} version={version} routeContext={routeContext} />
     </>
   )
@@ -708,20 +582,6 @@ function EmployeeOperationsTable({
 
   return (
     <SurfaceCard title={table.title} version={version}>
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-1 items-center gap-3 rounded-[1rem] border border-current/10 bg-black/5 px-4 py-3 text-sm text-current/45">
-          <Search className="size-4 shrink-0" />
-          <span>Search records, owners, tags, or workflow states</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button className="rounded-full border border-current/10 bg-black/5 px-3 py-2 text-sm text-current/70">
-            Status: All
-          </button>
-          <button className="rounded-full border border-current/10 bg-black/5 px-3 py-2 text-sm text-current/70">
-            Department: Any
-          </button>
-        </div>
-      </div>
       <div className="overflow-hidden rounded-[1.35rem] border border-current/10">
         <div className="grid grid-cols-[1.1fr_repeat(3,minmax(0,1fr))] bg-black/5 px-4 py-3 text-xs font-semibold uppercase tracking-[0.22em] text-current/55">
           {table.columns.map((column) => (
@@ -799,7 +659,6 @@ function ProfilePanel({
           ))}
         </div>
       </SurfaceCard>
-      <CardsPanel screen={screen} version={version} />
     </>
   )
 }
@@ -851,35 +710,42 @@ function EmployeeEditScreen({
 }
 
 function DepartmentsScreen({
-  screen,
-  version,
+  screen: _screen,
+  version: _version,
 }: {
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  return <CardsPanel screen={screen} version={version} />
+  void _screen
+  void _version
+  return <DepartmentsWorkspace />
 }
 
 function LeaveManagementScreen({
-  screen,
-  version,
-  routeContext,
+  screen: _screen,
+  version: _version,
+  routeContext: _routeContext,
 }: {
   screen: ScreenDefinition
   version: VersionDefinition
   routeContext?: { employeeId?: string }
 }) {
-  return <EmployeeOperationsTable screen={screen} version={version} routeContext={routeContext} />
+  void _screen
+  void _version
+  void _routeContext
+  return <LeaveManagementWorkspace />
 }
 
 function AttendanceScreen({
-  screen,
-  version,
+  screen: _screen,
+  version: _version,
 }: {
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  return <CardsPanel screen={screen} version={version} />
+  void _screen
+  void _version
+  return <AttendanceWorkspace />
 }
 
 function PayrollScreen({
@@ -901,7 +767,7 @@ function PerformanceReviewsScreen({
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  return <FeedPanel screen={screen} version={version} />
+  return <OverviewPanel screen={screen} version={version} />
 }
 
 function DocumentsScreen({
@@ -911,7 +777,7 @@ function DocumentsScreen({
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  return <FeedPanel screen={screen} version={version} />
+  return <OverviewPanel screen={screen} version={version} />
 }
 
 function NotificationsScreen({
@@ -921,7 +787,7 @@ function NotificationsScreen({
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  return <FeedPanel screen={screen} version={version} />
+  return <OverviewPanel screen={screen} version={version} />
 }
 
 function SettingsScreen({
@@ -931,7 +797,7 @@ function SettingsScreen({
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  return <CardsPanel screen={screen} version={version} />
+  return <OverviewPanel screen={screen} version={version} />
 }
 
 function AdminConsoleScreen({
@@ -941,7 +807,7 @@ function AdminConsoleScreen({
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  return <CardsPanel screen={screen} version={version} />
+  return <OverviewPanel screen={screen} version={version} />
 }
 
 function ProductScreenFallback({
@@ -959,9 +825,9 @@ function ProductScreenFallback({
     case "form":
       return <FormPanel screen={screen} version={version} />
     case "cards":
-      return <CardsPanel screen={screen} version={version} />
+      return <OverviewPanel screen={screen} version={version} />
     case "feed":
-      return <FeedPanel screen={screen} version={version} />
+      return <OverviewPanel screen={screen} version={version} />
     case "table":
       return <EmployeeOperationsTable screen={screen} version={version} />
     default:
@@ -987,23 +853,6 @@ function FormPanel({
 
   return (
     <SurfaceCard title={screen.formTitle ?? "Form workspace"} version={version}>
-      <div className="mb-4 grid gap-3 lg:grid-cols-3">
-        {[
-          "Identity and employment",
-          "Reporting and payroll",
-          "Policies and audit trail",
-        ].map((item, index) => (
-          <div
-            key={item}
-            className="flex items-center gap-3 rounded-[1rem] border border-current/10 bg-black/5 px-4 py-3 text-sm"
-          >
-            <div className="flex size-7 items-center justify-center rounded-full bg-slate-950 text-xs font-semibold text-white">
-              {index + 1}
-            </div>
-            <span className="text-current/75">{item}</span>
-          </div>
-        ))}
-      </div>
       <EmployeeEditorForm
         employeeId={routeContext?.employeeId}
         initialValues={buildEmployeeFormInitialValues(screen, routeContext)}
@@ -1021,70 +870,16 @@ function FormPanel({
   )
 }
 
-function CardsPanel({
-  screen,
-  version,
+function OverviewPanel({
+  screen: _screen,
+  version: _version,
 }: {
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  return (
-    <SurfaceCard title={screen.cardsTitle ?? "Key sections"} version={version}>
-      <div className="grid gap-3 md:grid-cols-2">
-        {(screen.cards ?? []).map((card) => (
-          <div
-            key={card.title}
-            className="rounded-[1.35rem] border border-current/10 bg-black/5 p-4"
-          >
-            <p className="font-medium text-current/90">{card.title}</p>
-            <p className="mt-2 text-sm leading-6 text-current/70">
-              {card.description}
-            </p>
-          </div>
-        ))}
-      </div>
-    </SurfaceCard>
-  )
-}
-
-function FeedPanel({
-  screen,
-  version,
-}: {
-  screen: ScreenDefinition
-  version: VersionDefinition
-}) {
-  return (
-    <SurfaceCard title={screen.feedTitle ?? "Recent activity"} version={version}>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 rounded-full border border-current/10 bg-black/5 px-3 py-2 text-xs uppercase tracking-[0.22em] text-current/55">
-          <CheckCircle2 className="size-3.5" />
-          Operational stream
-        </div>
-        <button className="rounded-full border border-current/10 bg-black/5 px-3 py-2 text-sm text-current/70">
-          View all activity
-        </button>
-      </div>
-      <div className="grid gap-3">
-        {(screen.feed ?? []).map((item) => (
-          <div
-            key={`${item.title}-${item.meta}`}
-            className="rounded-[1.35rem] border border-current/10 bg-black/5 p-4"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="font-medium text-current/90">{item.title}</p>
-              {item.status ? (
-                <span className="rounded-full bg-white/50 px-2.5 py-1 text-xs text-current/70">
-                  {item.status}
-                </span>
-              ) : null}
-            </div>
-            <p className="mt-2 text-sm text-current/65">{item.meta}</p>
-          </div>
-        ))}
-      </div>
-    </SurfaceCard>
-  )
+  void _screen
+  void _version
+  return null
 }
 
 function LoginPanel({
@@ -1101,61 +896,6 @@ function LoginPanel({
         secondaryAction={screen.secondaryAction}
         versionId={version.id}
       />
-    </SurfaceCard>
-  )
-}
-
-function OperationalChecklistPanel({
-  screen,
-  version,
-}: {
-  screen: ScreenDefinition
-  version: VersionDefinition
-}) {
-  return (
-    <SurfaceCard title="Open work items" version={version}>
-      <div className="grid gap-3">
-        {(screen.highlights ?? []).map((item, index) => (
-          <div
-            key={item}
-            className="flex items-start gap-3 rounded-[1.2rem] border border-current/10 bg-black/5 p-4 text-sm leading-6 text-current/80"
-          >
-            <div className="mt-0.5 flex size-6 items-center justify-center rounded-full bg-slate-950 text-xs font-semibold text-white">
-              {index + 1}
-            </div>
-            <span>{item}</span>
-          </div>
-        ))}
-      </div>
-    </SurfaceCard>
-  )
-}
-
-function ActivityRailPanel({
-  screenKey,
-  version,
-}: {
-  screenKey: ScreenKey
-  version: VersionDefinition
-}) {
-  return (
-    <SurfaceCard title="Recent activity" version={version}>
-      <div className="grid gap-3">
-        {getActivityItems(screenKey).map((item) => (
-          <div
-            key={`${item.title}-${item.meta}`}
-            className="rounded-[1.2rem] border border-current/10 bg-black/5 p-4"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium text-current/90">{item.title}</p>
-              <span className="rounded-full bg-white/40 px-2 py-1 text-[11px] text-current/70">
-                {item.badge}
-              </span>
-            </div>
-            <p className="mt-2 text-sm leading-6 text-current/65">{item.meta}</p>
-          </div>
-        ))}
-      </div>
     </SurfaceCard>
   )
 }
@@ -1182,55 +922,13 @@ function getBreadcrumbs(
   return items
 }
 
-function getWorkflowTabs(
-  screenKey: ScreenKey,
-  versionId: VersionDefinition["id"],
-  routeContext?: { employeeId?: string },
-) {
-  const employeeId = routeContext?.employeeId ?? "emp-001"
-  const employeeTabs = [
-    {
-      key: "employeesList" as const,
-      label: "Directory",
-      href: `/${versionId}/${getPathForScreen("employeesList")}`,
-    },
-    {
-      key: "employeeDetails" as const,
-      label: "Profile",
-      href: `/${versionId}/${getPathForScreen("employeeDetails", { employeeId })}`,
-    },
-    {
-      key: "employeeAdd" as const,
-      label: "New hire",
-      href: `/${versionId}/${getPathForScreen("employeeAdd")}`,
-    },
-    {
-      key: "employeeEdit" as const,
-      label: "Update record",
-      href: `/${versionId}/${getPathForScreen("employeeEdit", { employeeId })}`,
-    },
-  ]
-
-  const defaultTabs = [
-    {
-      key: screenKey,
-      label: "Overview",
-      href: `/${versionId}/${getPathForScreen(screenKey)}`,
-    },
-  ]
-
-  const tabSource =
-    screenKey === "employeesList" ||
-    screenKey === "employeeDetails" ||
-    screenKey === "employeeAdd" ||
-    screenKey === "employeeEdit"
-      ? employeeTabs
-      : defaultTabs
-
-  return tabSource.map((tab) => ({
-    ...tab,
-    current: tab.key === screenKey,
-  }))
+function getInitials(fullName: string) {
+  return fullName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("")
 }
 
 function getPrimaryActionHref(
@@ -1263,27 +961,6 @@ function getSecondaryActionHref(
     default:
       return null
   }
-}
-
-function getUtilityStats(screenKey: ScreenKey) {
-  if (
-    screenKey === "employeesList" ||
-    screenKey === "employeeDetails" ||
-    screenKey === "employeeAdd" ||
-    screenKey === "employeeEdit"
-  ) {
-    return [
-      { label: "Pending approvals", value: "07" },
-      { label: "Profiles in review", value: "11" },
-      { label: "Onboarding today", value: "03" },
-    ]
-  }
-
-  return [
-    { label: "Action queue", value: "19" },
-    { label: "Unread alerts", value: "06" },
-    { label: "Policy exceptions", value: "04" },
-  ]
 }
 
 function SurfaceCard({
@@ -1324,114 +1001,6 @@ function FieldBlock({ field }: { field: ScreenField }) {
       ) : null}
     </div>
   )
-}
-
-function getOperationalSummary(screenKey: ScreenKey) {
-  switch (screenKey) {
-    case "dashboard":
-      return "Monitor workforce health, approvals, payroll readiness, and cross-functional escalations in one place."
-    case "employeesList":
-      return "Manage the employee directory, inspect status changes, and move into profile or onboarding actions from a single workspace."
-    case "employeeDetails":
-      return "Review a complete employee record including reporting, compensation, documentation, and operational dependencies."
-    case "employeeAdd":
-      return "Create a new employee record with onboarding-ready profile, reporting, and payroll information."
-    case "employeeEdit":
-      return "Update profile information while preserving downstream operational integrity across payroll, attendance, and approvals."
-    case "leaveManagement":
-      return "Track time-away demand, approval queues, and policy-sensitive absence cases across the organization."
-    case "attendance":
-      return "Monitor daily presence signals, unresolved attendance anomalies, and shift-related exceptions."
-    case "payroll":
-      return "Review payrun blockers, banking mismatches, and compensation exceptions before payroll close."
-    default:
-      return "Work from a production-style HRMS workspace with module-specific actions, controls, and operational context."
-  }
-}
-
-function getOperationalFlags(screenKey: ScreenKey) {
-  switch (screenKey) {
-    case "dashboard":
-      return ["Live queues", "Manager escalations", "Compliance watch"]
-    case "employeesList":
-      return ["Directory controls", "Status filters", "Profile actions"]
-    case "employeeDetails":
-      return ["Profile record", "Compensation context", "Document trail"]
-    case "employeeAdd":
-      return ["New hire intake", "Onboarding workflow", "Payroll setup"]
-    case "employeeEdit":
-      return ["Change tracking", "Downstream checks", "Audit-safe update"]
-    case "leaveManagement":
-      return ["Approval queue", "Policy review", "Balance checks"]
-    case "attendance":
-      return ["Presence signals", "Shift anomalies", "Remote coverage"]
-    case "payroll":
-      return ["Payrun blockers", "Finance handoff", "Bank verification"]
-    default:
-      return ["Operational view", "Product workflow", "Role-based actions"]
-  }
-}
-
-function getActivityItems(screenKey: ScreenKey) {
-  switch (screenKey) {
-    case "employeesList":
-    case "employeeDetails":
-    case "employeeAdd":
-    case "employeeEdit":
-      return [
-        {
-          title: "Manager approval completed",
-          meta: "Ava Patel role mapping was approved by Grace Chen 12 minutes ago.",
-          badge: "Approved",
-        },
-        {
-          title: "Payroll sync queued",
-          meta: "The latest employee profile change will be synced to payroll in the next batch.",
-          badge: "Queued",
-        },
-        {
-          title: "Document follow-up created",
-          meta: "A compliance reminder was scheduled for Mia Shah's onboarding packet.",
-          badge: "Action",
-        },
-      ]
-    case "leaveManagement":
-      return [
-        {
-          title: "Annual leave request escalated",
-          meta: "One pending request exceeded the manager SLA and was escalated to People Ops.",
-          badge: "Escalated",
-        },
-        {
-          title: "Policy conflict detected",
-          meta: "A remote work request overlaps with a regional holiday calendar exception.",
-          badge: "Review",
-        },
-        {
-          title: "Balance refresh completed",
-          meta: "Quarterly leave accrual balances were recalculated across all entities.",
-          badge: "Done",
-        },
-      ]
-    default:
-      return [
-        {
-          title: "Operations digest published",
-          meta: "The regional people operations summary was published for leadership review.",
-          badge: "Published",
-        },
-        {
-          title: "Approval queue refreshed",
-          meta: "Pending approvals and escalations were synced from the latest workflow snapshot.",
-          badge: "Synced",
-        },
-        {
-          title: "System notice cleared",
-          meta: "The earlier notification delay affecting people alerts has been resolved.",
-          badge: "Resolved",
-        },
-      ]
-  }
 }
 
 function buildEmployeeFormInitialValues(

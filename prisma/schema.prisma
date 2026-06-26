@@ -10,6 +10,7 @@ model Employee {
   id                String   @id @default(dbgenerated("('emp-'::text || lpad(nextval('employees_id_seq'::regclass)::text, 3, '0'::text))"))
   fullName          String   @map("full_name")
   email             String   @unique
+  passwordHash      String   @map("password_hash")
   role              String
   departmentId      String   @map("department_id")
   departmentName    String   @map("department_name")
@@ -61,6 +62,21 @@ model AttendanceSignal {
   updatedAt DateTime @default(now()) @map("updated_at")
 
   @@map("attendance_signals")
+}
+
+model AttendanceEntry {
+  id           String   @id
+  employeeName String   @map("employee_name")
+  workDate     DateTime @db.Date @map("work_date")
+  status       String
+  checkIn      String   @map("check_in")
+  checkOut     String?  @map("check_out")
+  workMode     String   @map("work_mode")
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at")
+
+  @@map("attendance_entries")
 }
 
 model PayrollIssue {

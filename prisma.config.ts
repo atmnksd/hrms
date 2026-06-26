@@ -1,4 +1,9 @@
+import nextEnv from "@next/env"
 import { defineConfig } from "prisma/config"
+
+const { loadEnvConfig } = nextEnv
+
+loadEnvConfig(process.cwd())
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

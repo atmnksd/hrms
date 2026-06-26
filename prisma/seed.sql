@@ -2,6 +2,7 @@ insert into employees (
   id,
   full_name,
   email,
+  password_hash,
   role,
   department_id,
   department_name,
@@ -16,14 +17,15 @@ insert into employees (
   joining_date
 )
 values
-  ('emp-001', 'Ava Patel', 'ava.patel@workgrid.example', 'Senior Recruiter', 'dept-talent', 'Talent', 'Grace Chen', 'Full-time', 'Bengaluru', '+91 99888 00001', 'Rohan Patel', 'P3', 'Verified', 'Active', '2024-03-11'),
-  ('emp-002', 'Noah Silva', 'noah.silva@workgrid.example', 'Payroll Analyst', 'dept-finance', 'Finance', 'Marta Diaz', 'Full-time', 'Mumbai', '+91 99888 00002', 'Lena Silva', 'P2', 'Mismatch', 'Active', '2023-09-18'),
-  ('emp-003', 'Mia Shah', 'mia.shah@workgrid.example', 'Office Manager', 'dept-admin', 'Admin', 'Harish Mehta', 'Full-time', 'Bengaluru', '+91 99888 00003', 'Nidhi Shah', 'P2', 'Verified', 'Probation', '2026-05-06'),
-  ('emp-004', 'Liam Wong', 'liam.wong@workgrid.example', 'Engineering Manager', 'dept-eng', 'Engineering', 'Jules Carter', 'Full-time', 'Singapore', '+65 9000 0004', 'May Wong', 'M1', 'Verified', 'Remote', '2022-01-10')
+  ('emp-001', 'Ava Patel', 'ava.patel@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Senior Recruiter', 'dept-talent', 'Talent', 'Grace Chen', 'Full-time', 'Bengaluru', '+91 99888 00001', 'Rohan Patel', 'P3', 'Verified', 'Active', '2024-03-11'),
+  ('emp-002', 'Noah Silva', 'noah.silva@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Payroll Analyst', 'dept-finance', 'Finance', 'Marta Diaz', 'Full-time', 'Mumbai', '+91 99888 00002', 'Lena Silva', 'P2', 'Mismatch', 'Active', '2023-09-18'),
+  ('emp-003', 'Mia Shah', 'mia.shah@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Office Manager', 'dept-admin', 'Admin', 'Harish Mehta', 'Full-time', 'Bengaluru', '+91 99888 00003', 'Nidhi Shah', 'P2', 'Verified', 'Probation', '2026-05-06'),
+  ('emp-004', 'Liam Wong', 'liam.wong@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Engineering Manager', 'dept-eng', 'Engineering', 'Jules Carter', 'Full-time', 'Singapore', '+65 9000 0004', 'May Wong', 'M1', 'Verified', 'Remote', '2022-01-10')
 on conflict (id) do update
 set
   full_name = excluded.full_name,
   email = excluded.email,
+  password_hash = excluded.password_hash,
   role = excluded.role,
   department_id = excluded.department_id,
   department_name = excluded.department_name,
@@ -65,6 +67,23 @@ set
   leave_type = excluded.leave_type,
   date_range = excluded.date_range,
   status = excluded.status,
+  updated_at = now();
+
+insert into attendance_entries (id, employee_name, work_date, status, check_in, check_out, work_mode, notes)
+values
+  ('att-entry-001', 'Ava Patel', '2026-06-26', 'Present', '09:04', '18:11', 'Office', 'Interview panel scheduled in the afternoon'),
+  ('att-entry-002', 'Noah Silva', '2026-06-26', 'Present', '08:56', '17:42', 'Office', 'Payroll close support'),
+  ('att-entry-003', 'Mia Shah', '2026-06-26', 'Half Day', '09:37', '14:03', 'Office', 'Document verification appointment'),
+  ('att-entry-004', 'Liam Wong', '2026-06-26', 'Present', '08:41', '17:55', 'Remote', 'Regional leadership sync from Singapore')
+on conflict (id) do update
+set
+  employee_name = excluded.employee_name,
+  work_date = excluded.work_date,
+  status = excluded.status,
+  check_in = excluded.check_in,
+  check_out = excluded.check_out,
+  work_mode = excluded.work_mode,
+  notes = excluded.notes,
   updated_at = now();
 
 insert into attendance_signals (id, title, summary)

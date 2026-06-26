@@ -62,9 +62,21 @@ export function LoginForm({
       body: JSON.stringify({ email, password }),
     })
 
-    const payload = (await response.json()) as {
+    const raw = await response.text()
+    let payload: {
       error?: string
       data?: { ok: boolean; message: string }
+    }
+
+    try {
+      payload = (raw ? JSON.parse(raw) : {}) as {
+        error?: string
+        data?: { ok: boolean; message: string }
+      }
+    } catch {
+      payload = {
+        error: "The server returned an unreadable response.",
+      }
     }
 
     if (!response.ok || !payload.data?.ok) {

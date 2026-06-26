@@ -152,7 +152,7 @@ const v0: VersionDefinition = {
     "Treat this release as the golden reference for selectors, semantics, and screen structure.",
   shellLabel: "Human Resources Control Center",
   shellDescription:
-    "Classic enterprise shell with descriptive labels and predictable content blocks.",
+    "A focused workspace for people operations, approvals, workforce records, and payroll readiness.",
   driftMarkers: [
     "Page titles match navigation labels closely.",
     "Primary actions use direct verbs such as Add, Save, and Export.",
@@ -432,13 +432,6 @@ const v0: VersionDefinition = {
         "A useful page for visual diff demonstrations.",
         "Future versions may move from summary cards to denser operational language.",
       ],
-      cardsTitle: "Attendance signals",
-      cards: [
-        { title: "Late arrivals", description: "Nine employees crossed the grace period today." },
-        { title: "Shift swaps", description: "Four pending approvals across customer support." },
-        { title: "Remote presence", description: "63 employees marked remote for the day." },
-        { title: "Biometric sync", description: "One office device has not uploaded the latest logs." },
-      ],
     },
     payroll: {
       navLabel: "Payroll",
@@ -602,7 +595,7 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
       "Expect CTA and section naming changes while the route paths and workflow intent stay stable.",
     shellLabel: "People Operations Hub",
     shellDescription:
-      "A tidier release with product-style copy and stronger dashboard framing.",
+      "A people operations workspace centered on daily execution, leadership visibility, and employee records.",
     driftMarkers: [
       "Several buttons shift from direct verbs to softer action language.",
       "Navigation remains recognizable but adopts more product-oriented hints.",
@@ -617,8 +610,8 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
           "The dashboard CTA text and hero title changed, so exact-text selectors from v0 should no longer be trusted.",
         cards: [
           {
-            title: "Action queue",
-            description: "Ten people operations items are waiting across approvals, renewals, and payroll checks.",
+            title: "Operational follow-up",
+            description: "Managers can review workforce actions, compliance items, and payroll exceptions from one place.",
           },
           {
             title: "Hiring cadence",
@@ -674,7 +667,7 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
       "Good candidate for navigation-label healing because multiple modules now use alternate naming.",
     shellLabel: "Workforce Pulse Workspace",
     shellDescription:
-      "Navigation and headings emphasize a faster-moving, operations-focused vocabulary.",
+      "An operations-first workspace built around workforce movement, approvals, and time-sensitive actions.",
     driftMarkers: [
       "Employee-facing modules now use People phrasing in multiple places.",
       "Some labels are shortened while others become more operational.",
@@ -736,7 +729,7 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
       "Expected to break brittle selectors that depend on exact headings, action labels, or rigid card groupings.",
     shellLabel: "TeamOS Command Layer",
     shellDescription:
-      "A more opinionated shell that feels like a product relaunch instead of a minor UI polish.",
+      "A streamlined operating layer for fast-moving people teams managing approvals, records, and coverage.",
     driftMarkers: [
       "Hero headlines are shorter and more brand-like.",
       "Action labels shift away from baseline enterprise wording.",
@@ -811,7 +804,7 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
       "Use this release as the strongest healing challenge before changing underlying data or APIs.",
     shellLabel: "Workgrid HQ",
     shellDescription:
-      "Compact, release-hardened UI language with the highest amount of locator drift among the current versions.",
+      "A compact workspace for executive visibility, people records, payroll controls, and organization-wide actions.",
     driftMarkers: [
       "Several titles become intentionally shorter and less literal.",
       "Buttons use productized phrasing instead of classic CRUD verbs.",
