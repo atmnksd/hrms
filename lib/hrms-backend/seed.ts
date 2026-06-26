@@ -1,0 +1,344 @@
+import type {
+  AdminTask,
+  AttendanceSignal,
+  DashboardTask,
+  Department,
+  DocumentEvent,
+  Employee,
+  LeaveRequest,
+  NotificationEvent,
+  PayrollIssue,
+  ReviewCycle,
+  SettingsGroup,
+} from "@/lib/hrms-backend/types"
+
+export const seedEmployees: Employee[] = [
+  {
+    id: "emp-001",
+    fullName: "Ava Patel",
+    email: "ava.patel@workgrid.example",
+    role: "Senior Recruiter",
+    departmentId: "dept-talent",
+    departmentName: "Talent",
+    manager: "Grace Chen",
+    employmentType: "Full-time",
+    location: "Bengaluru",
+    phoneNumber: "+91 99888 00001",
+    emergencyContact: "Rohan Patel",
+    compensationBand: "P3",
+    payrollBankStatus: "Verified",
+    status: "Active",
+    joiningDate: "2024-03-11",
+  },
+  {
+    id: "emp-002",
+    fullName: "Noah Silva",
+    email: "noah.silva@workgrid.example",
+    role: "Payroll Analyst",
+    departmentId: "dept-finance",
+    departmentName: "Finance",
+    manager: "Marta Diaz",
+    employmentType: "Full-time",
+    location: "Mumbai",
+    phoneNumber: "+91 99888 00002",
+    emergencyContact: "Lena Silva",
+    compensationBand: "P2",
+    payrollBankStatus: "Mismatch",
+    status: "Active",
+    joiningDate: "2023-09-18",
+  },
+  {
+    id: "emp-003",
+    fullName: "Mia Shah",
+    email: "mia.shah@workgrid.example",
+    role: "Office Manager",
+    departmentId: "dept-admin",
+    departmentName: "Admin",
+    manager: "Harish Mehta",
+    employmentType: "Full-time",
+    location: "Bengaluru",
+    phoneNumber: "+91 99888 00003",
+    emergencyContact: "Nidhi Shah",
+    compensationBand: "P2",
+    payrollBankStatus: "Verified",
+    status: "Probation",
+    joiningDate: "2026-05-06",
+  },
+  {
+    id: "emp-004",
+    fullName: "Liam Wong",
+    email: "liam.wong@workgrid.example",
+    role: "Engineering Manager",
+    departmentId: "dept-eng",
+    departmentName: "Engineering",
+    manager: "Jules Carter",
+    employmentType: "Full-time",
+    location: "Singapore",
+    phoneNumber: "+65 9000 0004",
+    emergencyContact: "May Wong",
+    compensationBand: "M1",
+    payrollBankStatus: "Verified",
+    status: "Remote",
+    joiningDate: "2022-01-10",
+  },
+]
+
+export const seedDepartments: Department[] = [
+  {
+    id: "dept-eng",
+    name: "Engineering",
+    lead: "Jules Carter",
+    budgetStatus: "On track",
+    employeeCount: 78,
+    openRoles: 2,
+  },
+  {
+    id: "dept-talent",
+    name: "Talent",
+    lead: "Grace Chen",
+    budgetStatus: "Needs approval",
+    employeeCount: 12,
+    openRoles: 3,
+  },
+  {
+    id: "dept-finance",
+    name: "Finance",
+    lead: "Marta Diaz",
+    budgetStatus: "On track",
+    employeeCount: 16,
+    openRoles: 1,
+  },
+  {
+    id: "dept-admin",
+    name: "Admin",
+    lead: "Harish Mehta",
+    budgetStatus: "Watchlist",
+    employeeCount: 11,
+    openRoles: 0,
+  },
+]
+
+export const seedLeaveRequests: LeaveRequest[] = [
+  {
+    id: "leave-001",
+    employeeName: "Mia Shah",
+    leaveType: "Annual leave",
+    dateRange: "Jul 02 - Jul 05",
+    status: "Pending manager",
+  },
+  {
+    id: "leave-002",
+    employeeName: "Ava Patel",
+    leaveType: "Sick leave",
+    dateRange: "Jun 28",
+    status: "Approved",
+  },
+  {
+    id: "leave-003",
+    employeeName: "Noah Silva",
+    leaveType: "Comp-off",
+    dateRange: "Jul 12",
+    status: "Pending HR",
+  },
+  {
+    id: "leave-004",
+    employeeName: "Liam Wong",
+    leaveType: "Work from home",
+    dateRange: "Jul 01 - Jul 03",
+    status: "Policy review",
+  },
+]
+
+export const seedAttendanceSignals: AttendanceSignal[] = [
+  {
+    id: "att-001",
+    title: "Late arrivals",
+    summary: "Nine employees crossed the grace period today.",
+  },
+  {
+    id: "att-002",
+    title: "Shift swaps",
+    summary: "Four pending approvals across customer support.",
+  },
+  {
+    id: "att-003",
+    title: "Remote presence",
+    summary: "63 employees marked remote for the day.",
+  },
+  {
+    id: "att-004",
+    title: "Biometric sync",
+    summary: "One office device is still waiting to upload logs.",
+  },
+]
+
+export const seedPayrollIssues: PayrollIssue[] = [
+  {
+    id: "pay-001",
+    employeeName: "Noah Silva",
+    issue: "Bank account mismatch",
+    owner: "Payroll",
+    priority: "High",
+  },
+  {
+    id: "pay-002",
+    employeeName: "Priya Menon",
+    issue: "Missing tax regime",
+    owner: "HR Ops",
+    priority: "Medium",
+  },
+  {
+    id: "pay-003",
+    employeeName: "Daniel Reed",
+    issue: "Bonus pending approval",
+    owner: "Finance",
+    priority: "Medium",
+  },
+  {
+    id: "pay-004",
+    employeeName: "Ivy Kumar",
+    issue: "Location allowance conflict",
+    owner: "Comp Team",
+    priority: "High",
+  },
+]
+
+export const seedReviewCycles: ReviewCycle[] = [
+  {
+    id: "rev-001",
+    title: "Mid-year cycle launched",
+    meta: "124 employees assigned reviewers",
+    status: "Live",
+  },
+  {
+    id: "rev-002",
+    title: "Manager reminders queued",
+    meta: "18 managers have overdue feedback",
+    status: "Attention",
+  },
+  {
+    id: "rev-003",
+    title: "Calibration deck updated",
+    meta: "Leadership review scheduled for Friday",
+    status: "Ready",
+  },
+]
+
+export const seedDocumentEvents: DocumentEvent[] = [
+  {
+    id: "doc-001",
+    title: "Visa renewal packet uploaded",
+    meta: "For Mia Shah by Admin Ops",
+    status: "New",
+  },
+  {
+    id: "doc-002",
+    title: "Policy handbook versioned",
+    meta: "FY26 release published to all employees",
+    status: "Published",
+  },
+  {
+    id: "doc-003",
+    title: "Offer letter signed",
+    meta: "Candidate accepted payroll analyst role",
+    status: "Completed",
+  },
+]
+
+export const seedNotificationEvents: NotificationEvent[] = [
+  {
+    id: "not-001",
+    title: "Benefits enrollment closes soon",
+    meta: "Sent to all employees 2 hours ago",
+    status: "Unread",
+  },
+  {
+    id: "not-002",
+    title: "Manager review reminder",
+    meta: "Queued for 18 managers this morning",
+    status: "Queued",
+  },
+  {
+    id: "not-003",
+    title: "Office closure advisory",
+    meta: "Shared with Bengaluru office staff",
+    status: "Delivered",
+  },
+]
+
+export const seedSettingsGroups: SettingsGroup[] = [
+  {
+    id: "set-001",
+    name: "Approvals",
+    description: "Routing rules for leave, onboarding, and payroll exceptions.",
+  },
+  {
+    id: "set-002",
+    name: "Branding",
+    description: "Logo, email copy, and employee portal language.",
+  },
+  {
+    id: "set-003",
+    name: "Security",
+    description: "Password policies, SSO, and session governance.",
+  },
+  {
+    id: "set-004",
+    name: "Localization",
+    description: "Working week, holiday calendar, and timezone preferences.",
+  },
+]
+
+export const seedAdminTasks: AdminTask[] = [
+  {
+    id: "adm-001",
+    title: "Role administration",
+    description: "Assign HR admin, payroll, and auditor permissions.",
+  },
+  {
+    id: "adm-002",
+    title: "Audit monitoring",
+    description: "Inspect elevated actions and export compliance trails.",
+  },
+  {
+    id: "adm-003",
+    title: "Data maintenance",
+    description: "Archive stale records and reconcile controlled lists.",
+  },
+  {
+    id: "adm-004",
+    title: "Environment flags",
+    description: "Toggle staged rollout behavior for selected modules.",
+  },
+]
+
+export const seedDashboardTasks: DashboardTask[] = [
+  {
+    id: "dash-001",
+    employeeName: "Ava Patel",
+    task: "Finalize onboarding plan",
+    owner: "HR Ops",
+    status: "In progress",
+  },
+  {
+    id: "dash-002",
+    employeeName: "Liam Wong",
+    task: "Approve location transfer",
+    owner: "People Lead",
+    status: "Awaiting",
+  },
+  {
+    id: "dash-003",
+    employeeName: "Noah Silva",
+    task: "Confirm payroll exception",
+    owner: "Payroll",
+    status: "Needs review",
+  },
+  {
+    id: "dash-004",
+    employeeName: "Mia Shah",
+    task: "Collect visa renewal copy",
+    owner: "Admin",
+    status: "Scheduled",
+  },
+]
