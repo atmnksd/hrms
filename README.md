@@ -19,6 +19,7 @@ Available commands:
 `npm run db:deploy` applies committed Prisma migrations to the target database.
 
 `npm run db:seed` runs the Prisma seed hook.
+It inserts the starter HRMS data only when the database is empty.
 
 ## Vercel deployment
 
@@ -27,10 +28,14 @@ Deployments on Vercel automatically run Prisma migrations before the Next.js bui
 That flow is:
 
 ```bash
-prisma migrate deploy && next build
+prisma migrate deploy && prisma db seed && next build
 ```
 
-So a deployment with `DATABASE_URL` configured will apply any pending committed migrations automatically.
+So a deployment with `DATABASE_URL` configured will:
+
+- apply any pending committed migrations
+- seed the base HRMS data on first deploy into an empty database
+- skip seeding on later deploys once employee records already exist
 
 ## What gets created
 
@@ -48,4 +53,4 @@ The Prisma migration creates the operational tables used by the app:
 - `admin_tasks`
 - `dashboard_tasks`
 
-Base HRMS records are inserted by the Prisma seed step using idempotent upserts, so rerunning the seed refreshes the starter dataset without duplicating rows.
+Base HRMS records are inserted automatically for a fresh environment. The deploy seed step checks whether the `employees` table already has data and becomes a no-op after initial bootstrap.

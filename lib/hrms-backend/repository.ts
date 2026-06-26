@@ -395,14 +395,26 @@ export async function getDashboardSummary() {
 export async function attemptLogin(
   payload: LoginPayload,
 ): Promise<RepositoryResult<LoginResult>> {
-  const record = await prisma.employee.findUnique({
-    where: {
-      email: payload.email.toLowerCase(),
-    },
-  })
+  const normalizedEmail = payload.email.toLowerCase()
+
+  const [employeeCount, record] = await Promise.all([
+    prisma.employee.count(),
+    prisma.employee.findUnique({
+      where: {
+        email: normalizedEmail,
+      },
+    }),
+  ])
 
   const user = record ? mapEmployee(record) : null
   const ok = Boolean(user) && payload.password.length >= 8
+
+  if (employeeCount === 0) {
+    return wrapResult({
+      ok: false,
+      message: "HRMS database has no users yet. Run the seed step for this environment.",
+    })
+  }
 
   if (!ok || !user) {
     return wrapResult({
