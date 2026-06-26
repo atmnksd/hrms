@@ -1014,18 +1014,18 @@ function buildEmployeeFormInitialValues(
   const isEdit = Boolean(routeContext?.employeeId)
 
   return {
-    fullName: values["Full name"] ?? values["Employee"] ?? "",
-    email: values["Work email"] ?? "new.employee@workgrid.example",
-    role: values["Role"] ?? "People Operations Specialist",
-    departmentName: values["Department"] ?? "People Operations",
-    manager: values["Manager"] ?? "Grace Chen",
-    employmentType: values["Employment type"] ?? "Full-time",
-    location: values["Location"] ?? "Bengaluru",
-    phoneNumber: values["Phone number"] ?? "+91 90000 00000",
-    emergencyContact: values["Emergency contact"] ?? "Primary Contact",
-    compensationBand: values["Compensation band"] ?? "P2",
-    payrollBankStatus: values["Bank status"] ?? "Verified",
-    joiningDate: isEdit ? "2024-03-11" : "2026-07-01",
-    status: "Active",
+    fullName: isEdit ? (values["Full name"] ?? values["Employee"] ?? "") : "",
+    email: isEdit ? (values["Work email"] ?? "") : "",
+    role: isEdit ? (values["Role"] ?? "") : "",
+    departmentName: isEdit ? (values["Department"] ?? "") : "",
+    manager: isEdit ? (values["Manager"] ?? "") : "",
+    employmentType: isEdit ? (values["Employment type"] ?? "") : "",
+    location: isEdit ? (values["Location"] ?? "") : "",
+    phoneNumber: isEdit ? (values["Phone number"] ?? "") : "",
+    emergencyContact: isEdit ? (values["Emergency contact"] ?? "") : "",
+    compensationBand: isEdit ? (values["Compensation band"] ?? "") : "",
+    payrollBankStatus: isEdit ? (values["Bank status"] ?? "") : "",
+    joiningDate: isEdit ? (values["Joining date"] ?? "") : "",
+    status: isEdit ? (values["Status"] ?? "") : "",
   }
 }

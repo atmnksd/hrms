@@ -20,7 +20,12 @@ values
   ('emp-001', 'Ava Patel', 'ava.patel@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Senior Recruiter', 'dept-talent', 'Talent', 'Grace Chen', 'Full-time', 'Bengaluru', '+91 99888 00001', 'Rohan Patel', 'P3', 'Verified', 'Active', '2024-03-11'),
   ('emp-002', 'Noah Silva', 'noah.silva@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Payroll Analyst', 'dept-finance', 'Finance', 'Marta Diaz', 'Full-time', 'Mumbai', '+91 99888 00002', 'Lena Silva', 'P2', 'Mismatch', 'Active', '2023-09-18'),
   ('emp-003', 'Mia Shah', 'mia.shah@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Office Manager', 'dept-admin', 'Admin', 'Harish Mehta', 'Full-time', 'Bengaluru', '+91 99888 00003', 'Nidhi Shah', 'P2', 'Verified', 'Probation', '2026-05-06'),
-  ('emp-004', 'Liam Wong', 'liam.wong@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Engineering Manager', 'dept-eng', 'Engineering', 'Jules Carter', 'Full-time', 'Singapore', '+65 9000 0004', 'May Wong', 'M1', 'Verified', 'Remote', '2022-01-10')
+  ('emp-004', 'Liam Wong', 'liam.wong@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Engineering Manager', 'dept-eng', 'Engineering', 'Jules Carter', 'Full-time', 'Singapore', '+65 9000 0004', 'May Wong', 'M1', 'Verified', 'Remote', '2022-01-10'),
+  ('emp-005', 'Grace Chen', 'grace.chen@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Head of Talent', 'dept-talent', 'Talent', 'Arjun Rao', 'Full-time', 'Bengaluru', '+91 99888 00005', 'Neil Chen', 'M2', 'Verified', 'Active', '2021-06-14'),
+  ('emp-006', 'Marta Diaz', 'marta.diaz@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Finance Controller', 'dept-finance', 'Finance', 'Arjun Rao', 'Full-time', 'Mumbai', '+91 99888 00006', 'Iris Diaz', 'M2', 'Verified', 'Active', '2020-11-02'),
+  ('emp-007', 'Harish Mehta', 'harish.mehta@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Workplace Director', 'dept-admin', 'Admin', 'Arjun Rao', 'Full-time', 'Bengaluru', '+91 99888 00007', 'Sneha Mehta', 'M2', 'Verified', 'Active', '2019-08-19'),
+  ('emp-008', 'Jules Carter', 'jules.carter@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'Director of Engineering', 'dept-eng', 'Engineering', 'Arjun Rao', 'Full-time', 'Singapore', '+65 9000 0008', 'Eli Carter', 'D1', 'Verified', 'Active', '2020-03-09'),
+  ('emp-009', 'Arjun Rao', 'arjun.rao@workgrid.example', '$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m', 'VP People Operations', 'dept-people-ops', 'People Operations', 'Arjun Rao', 'Full-time', 'Bengaluru', '+91 99888 00009', 'Kiran Rao', 'D2', 'Verified', 'Active', '2018-01-15')
 on conflict (id) do update
 set
   full_name = excluded.full_name,
@@ -42,10 +47,11 @@ set
 
 insert into departments (id, name, lead, budget_status, employee_count, open_roles)
 values
-  ('dept-eng', 'Engineering', 'Jules Carter', 'On track', 78, 2),
-  ('dept-talent', 'Talent', 'Grace Chen', 'Needs approval', 12, 3),
-  ('dept-finance', 'Finance', 'Marta Diaz', 'On track', 16, 1),
-  ('dept-admin', 'Admin', 'Harish Mehta', 'Watchlist', 11, 0)
+  ('dept-eng', 'Engineering', 'Jules Carter', 'On track', 2, 2),
+  ('dept-talent', 'Talent', 'Grace Chen', 'Needs approval', 2, 3),
+  ('dept-finance', 'Finance', 'Marta Diaz', 'On track', 2, 1),
+  ('dept-admin', 'Admin', 'Harish Mehta', 'Watchlist', 2, 0),
+  ('dept-people-ops', 'People Operations', 'Arjun Rao', 'On track', 1, 1)
 on conflict (id) do update
 set
   name = excluded.name,

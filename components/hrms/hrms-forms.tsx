@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { startTransition, useState } from "react"
+import { startTransition, useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 
@@ -9,6 +9,16 @@ type LoginFormProps = {
   primaryAction: string
   secondaryAction?: string
   versionId: string
+}
+
+type EmployeeOption = {
+  id: string
+  fullName: string
+}
+
+type DepartmentOption = {
+  id: string
+  name: string
 }
 
 type EmployeeEditorFormProps = {
@@ -44,8 +54,8 @@ export function LoginForm({
   versionId,
 }: LoginFormProps) {
   const router = useRouter()
-  const [email, setEmail] = useState("ava.patel@workgrid.example")
-  const [password, setPassword] = useState("password123")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -143,9 +153,75 @@ export function EmployeeEditorForm({
   initialValues,
 }: EmployeeEditorFormProps) {
   const router = useRouter()
-  const [values, setValues] = useState(initialValues)
+  const isCreate = mode === "create"
+  const [values, setValues] = useState(
+    isCreate
+      ? {
+          fullName: "",
+          email: "",
+          role: "",
+          departmentName: "",
+          manager: "",
+          employmentType: "",
+          location: "",
+          phoneNumber: "",
+          emergencyContact: "",
+          compensationBand: "",
+          payrollBankStatus: "",
+          joiningDate: "",
+          status: "",
+        }
+      : initialValues,
+  )
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([])
+  const [departmentOptions, setDepartmentOptions] = useState<DepartmentOption[]>([])
+
+  useEffect(() => {
+    let isActive = true
+
+    async function loadReferences() {
+      try {
+        const [employeesResponse, departmentsResponse] = await Promise.all([
+          fetch("/api/hrms/employees", { cache: "no-store" }),
+          fetch("/api/hrms/departments", { cache: "no-store" }),
+        ])
+
+        if (!employeesResponse.ok || !departmentsResponse.ok) {
+          throw new Error("Unable to load reference data.")
+        }
+
+        const employeesPayload = (await employeesResponse.json()) as {
+          data: EmployeeOption[]
+        }
+        const departmentsPayload = (await departmentsResponse.json()) as {
+          data: DepartmentOption[]
+        }
+
+        if (!isActive) {
+          return
+        }
+
+        setEmployeeOptions(employeesPayload.data)
+        setDepartmentOptions(departmentsPayload.data)
+      } catch (loadError) {
+        if (isActive) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Unable to load employee references.",
+          )
+        }
+      }
+    }
+
+    void loadReferences()
+
+    return () => {
+      isActive = false
+    }
+  }, [])
 
   function updateField<Key extends keyof typeof initialValues>(
     key: Key,
@@ -205,7 +281,7 @@ export function EmployeeEditorForm({
             className={inputClassName()}
             value={values.fullName}
             onChange={(event) => updateField("fullName", event.target.value)}
-            placeholder="Enter full legal name"
+            placeholder={isCreate ? "Enter full legal name" : initialValues.fullName}
           />
         </label>
         <label className="grid gap-2 text-sm">
@@ -215,7 +291,7 @@ export function EmployeeEditorForm({
             type="email"
             value={values.email}
             onChange={(event) => updateField("email", event.target.value)}
-            placeholder="Enter corporate email"
+            placeholder={isCreate ? "Enter corporate email" : initialValues.email}
           />
         </label>
         <label className="grid gap-2 text-sm">
@@ -224,26 +300,44 @@ export function EmployeeEditorForm({
             className={inputClassName()}
             value={values.role}
             onChange={(event) => updateField("role", event.target.value)}
-            placeholder="Enter role"
+            placeholder={isCreate ? "Enter role" : initialValues.role}
           />
         </label>
         <label className="grid gap-2 text-sm">
           <span className="font-medium text-slate-700">Department</span>
-          <input
+          <select
             className={inputClassName()}
             value={values.departmentName}
             onChange={(event) => updateField("departmentName", event.target.value)}
-            placeholder="Enter department"
-          />
+          >
+            <option value="" disabled>
+              {isCreate ? "Select department" : initialValues.departmentName}
+            </option>
+            {departmentOptions.map((department) => (
+              <option key={department.id} value={department.name}>
+                {department.name}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="grid gap-2 text-sm">
           <span className="font-medium text-slate-700">Manager</span>
-          <input
+          <select
             className={inputClassName()}
             value={values.manager}
             onChange={(event) => updateField("manager", event.target.value)}
-            placeholder="Enter manager"
-          />
+          >
+            <option value="" disabled>
+              {isCreate ? "Select manager" : initialValues.manager}
+            </option>
+            {employeeOptions
+              .filter((employee) => employee.fullName !== values.fullName)
+              .map((employee) => (
+                <option key={employee.id} value={employee.fullName}>
+                  {employee.fullName}
+                </option>
+              ))}
+          </select>
         </label>
         <label className="grid gap-2 text-sm">
           <span className="font-medium text-slate-700">Employment type</span>
@@ -252,6 +346,9 @@ export function EmployeeEditorForm({
             value={values.employmentType}
             onChange={(event) => updateField("employmentType", event.target.value)}
           >
+            <option value="" disabled>
+              Select employment type
+            </option>
             <option value="Full-time">Full-time</option>
             <option value="Contract">Contract</option>
             <option value="Intern">Intern</option>
@@ -263,7 +360,7 @@ export function EmployeeEditorForm({
             className={inputClassName()}
             value={values.location}
             onChange={(event) => updateField("location", event.target.value)}
-            placeholder="Enter location"
+            placeholder={isCreate ? "Enter location" : initialValues.location}
           />
         </label>
         <label className="grid gap-2 text-sm">
@@ -272,7 +369,7 @@ export function EmployeeEditorForm({
             className={inputClassName()}
             value={values.phoneNumber}
             onChange={(event) => updateField("phoneNumber", event.target.value)}
-            placeholder="Enter phone number"
+            placeholder={isCreate ? "Enter phone number" : initialValues.phoneNumber}
           />
         </label>
         <label className="grid gap-2 text-sm">
@@ -281,7 +378,9 @@ export function EmployeeEditorForm({
             className={inputClassName()}
             value={values.emergencyContact}
             onChange={(event) => updateField("emergencyContact", event.target.value)}
-            placeholder="Enter emergency contact"
+            placeholder={
+              isCreate ? "Enter emergency contact" : initialValues.emergencyContact
+            }
           />
         </label>
         <label className="grid gap-2 text-sm">
@@ -290,7 +389,9 @@ export function EmployeeEditorForm({
             className={inputClassName()}
             value={values.compensationBand}
             onChange={(event) => updateField("compensationBand", event.target.value)}
-            placeholder="Enter compensation band"
+            placeholder={
+              isCreate ? "Enter compensation band" : initialValues.compensationBand
+            }
           />
         </label>
         <label className="grid gap-2 text-sm">
@@ -300,6 +401,9 @@ export function EmployeeEditorForm({
             value={values.payrollBankStatus}
             onChange={(event) => updateField("payrollBankStatus", event.target.value)}
           >
+            <option value="" disabled>
+              Select payroll bank status
+            </option>
             <option value="Verified">Verified</option>
             <option value="Mismatch">Mismatch</option>
             <option value="Pending">Pending</option>
@@ -321,6 +425,9 @@ export function EmployeeEditorForm({
             value={values.status}
             onChange={(event) => updateField("status", event.target.value)}
           >
+            <option value="" disabled>
+              Select status
+            </option>
             <option value="Active">Active</option>
             <option value="Probation">Probation</option>
             <option value="Remote">Remote</option>

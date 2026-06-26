@@ -208,18 +208,34 @@ export async function buildEmployeeEditScreen(
     screen: {
       ...screen,
       fields: [
-        { label: "Phone number", placeholder: employee.data.phoneNumber },
-        { label: "Location", placeholder: employee.data.location },
+        { label: "Full name", placeholder: employee.data.fullName },
+        { label: "Work email", placeholder: employee.data.email },
+        { label: "Role", placeholder: employee.data.role },
+        { label: "Department", placeholder: employee.data.departmentName },
         { label: "Manager", placeholder: employee.data.manager },
+        {
+          label: "Employment type",
+          placeholder: employee.data.employmentType,
+        },
+        { label: "Location", placeholder: employee.data.location },
+        { label: "Phone number", placeholder: employee.data.phoneNumber },
         {
           label: "Emergency contact",
           placeholder: employee.data.emergencyContact,
         },
         {
+          label: "Compensation band",
+          placeholder: employee.data.compensationBand,
+        },
+        {
           label: "Bank status",
           placeholder: employee.data.payrollBankStatus,
         },
-        { label: "Notes", placeholder: `Update record for ${employee.data.fullName}` },
+        {
+          label: "Joining date",
+          placeholder: employee.data.joiningDate,
+        },
+        { label: "Status", placeholder: employee.data.status },
       ],
     },
     backend: {

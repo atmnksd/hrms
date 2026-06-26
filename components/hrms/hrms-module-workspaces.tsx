@@ -73,6 +73,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 export function DepartmentsWorkspace() {
   const [departments, setDepartments] = useState<Department[]>([])
   const [orgChart, setOrgChart] = useState<DepartmentOrgNode[]>([])
+  const [employees, setEmployees] = useState<EmployeeOption[]>([])
   const [form, setForm] = useState({
     id: "",
     name: "",
@@ -85,13 +86,15 @@ export function DepartmentsWorkspace() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function loadData() {
-    const [departmentsData, orgChartData] = await Promise.all([
+    const [departmentsData, orgChartData, employeesData] = await Promise.all([
       fetchJson<Department[]>("/api/hrms/departments"),
       fetchJson<DepartmentOrgNode[]>("/api/hrms/departments/org-chart"),
+      fetchJson<EmployeeOption[]>("/api/hrms/employees"),
     ])
 
     setDepartments(departmentsData)
     setOrgChart(orgChartData)
+    setEmployees(employeesData)
   }
 
   useEffect(() => {
@@ -188,14 +191,22 @@ export function DepartmentsWorkspace() {
           </label>
           <label className="grid gap-2 text-sm">
             <span className="font-medium text-slate-700">Lead</span>
-            <input
+            <select
               className={inputClassName()}
               value={form.lead}
               onChange={(event) =>
                 setForm((current) => ({ ...current, lead: event.target.value }))
               }
-              placeholder="Grace Chen"
-            />
+            >
+              <option value="" disabled>
+                Select department lead
+              </option>
+              {employees.map((employee) => (
+                <option key={employee.id} value={employee.fullName}>
+                  {employee.fullName}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="grid gap-2 text-sm">
             <span className="font-medium text-slate-700">Budget status</span>
@@ -361,7 +372,7 @@ export function LeaveManagementWorkspace() {
   const [employees, setEmployees] = useState<EmployeeOption[]>([])
   const [form, setForm] = useState({
     employeeName: "",
-    leaveType: "Annual leave",
+    leaveType: "",
     startDate: "",
     endDate: "",
   })
@@ -377,10 +388,6 @@ export function LeaveManagementWorkspace() {
 
     setRequests(requestsData)
     setEmployees(employeesData)
-    setForm((current) => ({
-      ...current,
-      employeeName: current.employeeName || employeesData[0]?.fullName || "",
-    }))
   }
 
   useEffect(() => {
@@ -440,9 +447,10 @@ export function LeaveManagementWorkspace() {
 
     setForm((current) => ({
       ...current,
+      employeeName: "",
       startDate: "",
       endDate: "",
-      leaveType: "Annual leave",
+      leaveType: "",
     }))
     await loadData()
     setIsSubmitting(false)
@@ -489,6 +497,9 @@ export function LeaveManagementWorkspace() {
                 }))
               }
             >
+              <option value="" disabled>
+                Select employee
+              </option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.fullName}>
                   {employee.fullName}
@@ -505,6 +516,9 @@ export function LeaveManagementWorkspace() {
                 setForm((current) => ({ ...current, leaveType: event.target.value }))
               }
             >
+              <option value="" disabled>
+                Select leave type
+              </option>
               <option value="Annual leave">Annual leave</option>
               <option value="Sick leave">Sick leave</option>
               <option value="Comp-off">Comp-off</option>
@@ -595,10 +609,10 @@ export function AttendanceWorkspace() {
   const [form, setForm] = useState({
     employeeName: "",
     workDate: "",
-    status: "Present",
-    checkIn: "09:00",
-    checkOut: "18:00",
-    workMode: "Office",
+    status: "",
+    checkIn: "",
+    checkOut: "",
+    workMode: "",
     notes: "",
   })
   const [error, setError] = useState<string | null>(null)
@@ -613,11 +627,6 @@ export function AttendanceWorkspace() {
 
     setEntries(entriesData)
     setEmployees(employeesData)
-    setForm((current) => ({
-      ...current,
-      employeeName: current.employeeName || employeesData[0]?.fullName || "",
-      workDate: current.workDate || new Date().toISOString().slice(0, 10),
-    }))
   }
 
   useEffect(() => {
@@ -675,10 +684,12 @@ export function AttendanceWorkspace() {
 
     setForm((current) => ({
       ...current,
-      status: "Present",
-      checkIn: "09:00",
-      checkOut: "18:00",
-      workMode: "Office",
+      employeeName: "",
+      workDate: "",
+      status: "",
+      checkIn: "",
+      checkOut: "",
+      workMode: "",
       notes: "",
     }))
     await loadData()
@@ -729,6 +740,9 @@ export function AttendanceWorkspace() {
                 }))
               }
             >
+              <option value="" disabled>
+                Select employee
+              </option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.fullName}>
                   {employee.fullName}
@@ -756,6 +770,9 @@ export function AttendanceWorkspace() {
                 setForm((current) => ({ ...current, status: event.target.value }))
               }
             >
+              <option value="" disabled>
+                Select status
+              </option>
               <option value="Present">Present</option>
               <option value="Absent">Absent</option>
               <option value="Half Day">Half Day</option>
@@ -771,6 +788,9 @@ export function AttendanceWorkspace() {
                 setForm((current) => ({ ...current, workMode: event.target.value }))
               }
             >
+              <option value="" disabled>
+                Select work mode
+              </option>
               <option value="Office">Office</option>
               <option value="Remote">Remote</option>
               <option value="Hybrid">Hybrid</option>
