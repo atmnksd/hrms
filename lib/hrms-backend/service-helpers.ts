@@ -25,6 +25,34 @@ type ScreenRuntimePayload = {
   }
 }
 
+function mapKpis(
+  baseKpis: ScreenDefinition["kpis"],
+  values: string[],
+  fallback: Array<{ label: string; delta: string }>,
+) {
+  return (baseKpis ?? fallback).map((kpi, index) => ({
+    label: kpi.label,
+    value: values[index] ?? "0",
+    delta: kpi.delta,
+  }))
+}
+
+function mapFields(
+  baseFields: ScreenDefinition["fields"],
+  placeholders: string[],
+  fallbackLabels: string[],
+) {
+  const fields =
+    baseFields && baseFields.length
+      ? baseFields
+      : fallbackLabels.map((label) => ({ label, placeholder: "" }))
+
+  return fields.map((field, index) => ({
+    ...field,
+    placeholder: placeholders[index] ?? field.placeholder,
+  }))
+}
+
 function backendLabel(source: RepositorySource) {
   void source
   return "PostgreSQL data"
@@ -41,31 +69,30 @@ export async function buildDashboardScreen(
   return {
     screen: {
       ...screen,
-      kpis: [
-        {
-          label: "Headcount",
-          value: String(summary.data.headcount),
-          delta: "Live workforce count",
-        },
-        {
-          label: "Open Requests",
-          value: String(summary.data.openRequests),
-          delta: "Pulled from active HR queues",
-        },
-        {
-          label: "Payroll Ready",
-          value: `${summary.data.payrollReadyPercent}%`,
-          delta: "Derived from bank verification status",
-        },
-        {
-          label: "Attendance Rate",
-          value: `${summary.data.attendanceRate}%`,
-          delta: "Calculated from current attendance signals",
-        },
-      ],
+      kpis: mapKpis(
+        screen.kpis,
+        [
+          String(summary.data.headcount),
+          String(summary.data.openRequests),
+          `${summary.data.payrollReadyPercent}%`,
+          `${summary.data.attendanceRate}%`,
+        ],
+        [
+          { label: "Headcount", delta: "Live workforce count" },
+          { label: "Open Requests", delta: "Pulled from active HR queues" },
+          {
+            label: "Payroll Ready",
+            delta: "Derived from bank verification status",
+          },
+          {
+            label: "Attendance Rate",
+            delta: "Calculated from current attendance signals",
+          },
+        ],
+      ),
       table: {
-        title: "Live operations queue",
-        columns: ["Employee", "Task", "Owner", "Status"],
+        title: screen.table?.title ?? "Live operations queue",
+        columns: screen.table?.columns ?? ["Employee", "Task", "Owner", "Status"],
         rows: tasks.data.map((task) => [
           task.employeeName,
           task.task,
@@ -89,41 +116,34 @@ export async function buildEmployeeDirectoryScreen(
   return {
     screen: {
       ...screen,
-      kpis: [
-        {
-          label: "Active employees",
-          value: String(
+      kpis: mapKpis(
+        screen.kpis,
+        [
+          String(
             employees.data.filter((employee) => employee.status === "Active").length,
           ),
-          delta: "Status = Active",
-        },
-        {
-          label: "Remote",
-          value: String(
+          String(
             employees.data.filter((employee) => employee.status === "Remote").length,
           ),
-          delta: "Status = Remote",
-        },
-        {
-          label: "Probation",
-          value: String(
+          String(
             employees.data.filter((employee) => employee.status === "Probation").length,
           ),
-          delta: "New joiners under review",
-        },
-        {
-          label: "Bank mismatches",
-          value: String(
+          String(
             employees.data.filter(
               (employee) => employee.payrollBankStatus !== "Verified",
             ).length,
           ),
-          delta: "Potential payroll blockers",
-        },
-      ],
+        ],
+        [
+          { label: "Active employees", delta: "Status = Active" },
+          { label: "Remote", delta: "Status = Remote" },
+          { label: "Probation", delta: "New joiners under review" },
+          { label: "Bank mismatches", delta: "Potential payroll blockers" },
+        ],
+      ),
       table: {
-        title: "Employee directory API result",
-        columns: ["Employee", "Role", "Department", "Status"],
+        title: screen.table?.title ?? "Employee directory API result",
+        columns: screen.table?.columns ?? ["Employee", "Role", "Department", "Status"],
         rows: employees.data.map((employee) => [
           employee.fullName,
           employee.role,
@@ -160,14 +180,25 @@ export async function buildEmployeeProfileScreen(
   return {
     screen: {
       ...screen,
-      fields: [
-        { label: "Employee", placeholder: employee.data.fullName },
-        { label: "Department", placeholder: employee.data.departmentName },
-        { label: "Manager", placeholder: employee.data.manager },
-        { label: "Employment type", placeholder: employee.data.employmentType },
-        { label: "Location", placeholder: employee.data.location },
-        { label: "Compensation band", placeholder: employee.data.compensationBand },
-      ],
+      fields: mapFields(
+        screen.fields,
+        [
+          employee.data.fullName,
+          employee.data.departmentName,
+          employee.data.manager,
+          employee.data.employmentType,
+          employee.data.location,
+          employee.data.compensationBand,
+        ],
+        [
+          "Employee",
+          "Department",
+          "Manager",
+          "Employment type",
+          "Location",
+          "Compensation band",
+        ],
+      ),
       cards: [
         {
           title: "Contact",
@@ -207,36 +238,39 @@ export async function buildEmployeeEditScreen(
   return {
     screen: {
       ...screen,
-      fields: [
-        { label: "Full name", placeholder: employee.data.fullName },
-        { label: "Work email", placeholder: employee.data.email },
-        { label: "Role", placeholder: employee.data.role },
-        { label: "Department", placeholder: employee.data.departmentName },
-        { label: "Manager", placeholder: employee.data.manager },
-        {
-          label: "Employment type",
-          placeholder: employee.data.employmentType,
-        },
-        { label: "Location", placeholder: employee.data.location },
-        { label: "Phone number", placeholder: employee.data.phoneNumber },
-        {
-          label: "Emergency contact",
-          placeholder: employee.data.emergencyContact,
-        },
-        {
-          label: "Compensation band",
-          placeholder: employee.data.compensationBand,
-        },
-        {
-          label: "Bank status",
-          placeholder: employee.data.payrollBankStatus,
-        },
-        {
-          label: "Joining date",
-          placeholder: employee.data.joiningDate,
-        },
-        { label: "Status", placeholder: employee.data.status },
-      ],
+      fields: mapFields(
+        screen.fields,
+        [
+          employee.data.fullName,
+          employee.data.email,
+          employee.data.role,
+          employee.data.departmentName,
+          employee.data.manager,
+          employee.data.employmentType,
+          employee.data.location,
+          employee.data.phoneNumber,
+          employee.data.emergencyContact,
+          employee.data.compensationBand,
+          employee.data.payrollBankStatus,
+          employee.data.joiningDate,
+          employee.data.status,
+        ],
+        [
+          "Full name",
+          "Work email",
+          "Role",
+          "Department",
+          "Manager",
+          "Employment type",
+          "Location",
+          "Phone number",
+          "Emergency contact",
+          "Compensation band",
+          "Bank status",
+          "Joining date",
+          "Status",
+        ],
+      ),
     },
     backend: {
       source: employee.source,
@@ -274,8 +308,8 @@ export async function buildLeaveManagementScreen(
     screen: {
       ...screen,
       table: {
-        title: "Leave request API queue",
-        columns: ["Employee", "Leave type", "Dates", "Status"],
+        title: screen.table?.title ?? "Leave request API queue",
+        columns: screen.table?.columns ?? ["Employee", "Leave type", "Dates", "Status"],
         rows: leaveRequests.data.map((request) => [
           request.employeeName,
           request.leaveType,
@@ -320,8 +354,8 @@ export async function buildPayrollScreen(
     screen: {
       ...screen,
       table: {
-        title: "Payroll exception API queue",
-        columns: ["Employee", "Issue", "Owner", "Priority"],
+        title: screen.table?.title ?? "Payroll exception API queue",
+        columns: screen.table?.columns ?? ["Employee", "Issue", "Owner", "Priority"],
         rows: payroll.data.map((issue) => [
           issue.employeeName,
           issue.issue,
