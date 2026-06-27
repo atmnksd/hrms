@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import type { ScreenDefinition } from "@/lib/hrms-data"
 
 type EmployeeOption = {
   id: string
@@ -70,7 +71,7 @@ async function fetchJson<T>(url: string): Promise<T> {
   return payload.data
 }
 
-export function DepartmentsWorkspace() {
+export function DepartmentsWorkspace({ screen }: { screen: ScreenDefinition }) {
   const [departments, setDepartments] = useState<Department[]>([])
   const [orgChart, setOrgChart] = useState<DepartmentOrgNode[]>([])
   const [employees, setEmployees] = useState<EmployeeOption[]>([])
@@ -84,6 +85,13 @@ export function DepartmentsWorkspace() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const formFields = screen.fields ?? [
+    { label: "Department name", placeholder: "People Operations" },
+    { label: "Lead", placeholder: "Select department lead" },
+    { label: "Budget status", placeholder: "Select budget status" },
+    { label: "Open roles", placeholder: "0" },
+  ]
 
   async function loadData() {
     const [departmentsData, orgChartData, employeesData] = await Promise.all([
@@ -170,27 +178,27 @@ export function DepartmentsWorkspace() {
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
             <h2 className="text-2xl font-semibold tracking-[-0.03em] text-slate-950">
-              Department administration
+              {screen.primaryAction}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
-              Create and maintain department records used across employee management.
+              {screen.description}
             </p>
           </div>
         </div>
         <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5" onSubmit={submitDepartment}>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Department name</span>
+            <span className="font-medium text-slate-700">{formFields[0]?.label}</span>
             <input
               className={inputClassName()}
               value={form.name}
               onChange={(event) =>
                 setForm((current) => ({ ...current, name: event.target.value }))
               }
-              placeholder="People Operations"
+              placeholder={formFields[0]?.placeholder}
             />
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Lead</span>
+            <span className="font-medium text-slate-700">{formFields[1]?.label}</span>
             <select
               className={inputClassName()}
               value={form.lead}
@@ -199,7 +207,7 @@ export function DepartmentsWorkspace() {
               }
             >
               <option value="" disabled>
-                Select department lead
+                {formFields[1]?.placeholder}
               </option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.fullName}>
@@ -209,7 +217,7 @@ export function DepartmentsWorkspace() {
             </select>
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Budget status</span>
+            <span className="font-medium text-slate-700">{formFields[2]?.label}</span>
             <select
               className={inputClassName()}
               value={form.budgetStatus}
@@ -220,13 +228,16 @@ export function DepartmentsWorkspace() {
                 }))
               }
             >
+              <option value="" disabled>
+                {formFields[2]?.placeholder}
+              </option>
               <option value="On track">On track</option>
               <option value="Needs approval">Needs approval</option>
               <option value="Watchlist">Watchlist</option>
             </select>
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Open roles</span>
+            <span className="font-medium text-slate-700">{formFields[3]?.label}</span>
             <input
               className={inputClassName()}
               min="0"
@@ -367,7 +378,7 @@ export function DepartmentsWorkspace() {
   )
 }
 
-export function LeaveManagementWorkspace() {
+export function LeaveManagementWorkspace({ screen }: { screen: ScreenDefinition }) {
   const [requests, setRequests] = useState<LeaveRequest[]>([])
   const [employees, setEmployees] = useState<EmployeeOption[]>([])
   const [form, setForm] = useState({
@@ -379,6 +390,12 @@ export function LeaveManagementWorkspace() {
   const [error, setError] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const formFields = screen.fields ?? [
+    { label: "Employee", placeholder: "Select employee" },
+    { label: "Leave type", placeholder: "Select leave type" },
+    { label: "Start date", placeholder: "Select start date" },
+    { label: "End date", placeholder: "Select end date" },
+  ]
 
   async function loadData() {
     const [requestsData, employeesData] = await Promise.all([
@@ -482,11 +499,11 @@ export function LeaveManagementWorkspace() {
     <div className="grid gap-5">
       <section className={panelClassName()}>
         <h2 className="mb-4 text-2xl font-semibold tracking-[-0.03em] text-slate-950">
-          Create leave request
+          {screen.primaryAction}
         </h2>
         <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5" onSubmit={submitRequest}>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Employee</span>
+            <span className="font-medium text-slate-700">{formFields[0]?.label}</span>
             <select
               className={inputClassName()}
               value={form.employeeName}
@@ -498,7 +515,7 @@ export function LeaveManagementWorkspace() {
               }
             >
               <option value="" disabled>
-                Select employee
+                {formFields[0]?.placeholder}
               </option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.fullName}>
@@ -508,7 +525,7 @@ export function LeaveManagementWorkspace() {
             </select>
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Leave type</span>
+            <span className="font-medium text-slate-700">{formFields[1]?.label}</span>
             <select
               className={inputClassName()}
               value={form.leaveType}
@@ -517,7 +534,7 @@ export function LeaveManagementWorkspace() {
               }
             >
               <option value="" disabled>
-                Select leave type
+                {formFields[1]?.placeholder}
               </option>
               <option value="Annual leave">Annual leave</option>
               <option value="Sick leave">Sick leave</option>
@@ -526,7 +543,7 @@ export function LeaveManagementWorkspace() {
             </select>
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Start date</span>
+            <span className="font-medium text-slate-700">{formFields[2]?.label}</span>
             <input
               className={inputClassName()}
               type="date"
@@ -537,7 +554,7 @@ export function LeaveManagementWorkspace() {
             />
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">End date</span>
+            <span className="font-medium text-slate-700">{formFields[3]?.label}</span>
             <input
               className={inputClassName()}
               type="date"
@@ -603,7 +620,7 @@ export function LeaveManagementWorkspace() {
   )
 }
 
-export function AttendanceWorkspace() {
+export function AttendanceWorkspace({ screen }: { screen: ScreenDefinition }) {
   const [entries, setEntries] = useState<AttendanceEntry[]>([])
   const [employees, setEmployees] = useState<EmployeeOption[]>([])
   const [form, setForm] = useState({
@@ -618,6 +635,15 @@ export function AttendanceWorkspace() {
   const [error, setError] = useState<string | null>(null)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const formFields = screen.fields ?? [
+    { label: "Employee", placeholder: "Select employee" },
+    { label: "Work date", placeholder: "Select work date" },
+    { label: "Status", placeholder: "Select status" },
+    { label: "Work mode", placeholder: "Select work mode" },
+    { label: "Check in", placeholder: "Set check in time" },
+    { label: "Check out", placeholder: "Set check out time" },
+    { label: "Notes", placeholder: "Optional attendance notes" },
+  ]
 
   async function loadData() {
     const [entriesData, employeesData] = await Promise.all([
@@ -725,11 +751,11 @@ export function AttendanceWorkspace() {
     <div className="grid gap-5">
       <section className={panelClassName()}>
         <h2 className="mb-4 text-2xl font-semibold tracking-[-0.03em] text-slate-950">
-          Mark attendance
+          {screen.primaryAction}
         </h2>
         <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" onSubmit={submitEntry}>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Employee</span>
+            <span className="font-medium text-slate-700">{formFields[0]?.label}</span>
             <select
               className={inputClassName()}
               value={form.employeeName}
@@ -741,7 +767,7 @@ export function AttendanceWorkspace() {
               }
             >
               <option value="" disabled>
-                Select employee
+                {formFields[0]?.placeholder}
               </option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.fullName}>
@@ -751,7 +777,7 @@ export function AttendanceWorkspace() {
             </select>
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Work date</span>
+            <span className="font-medium text-slate-700">{formFields[1]?.label}</span>
             <input
               className={inputClassName()}
               type="date"
@@ -762,7 +788,7 @@ export function AttendanceWorkspace() {
             />
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Status</span>
+            <span className="font-medium text-slate-700">{formFields[2]?.label}</span>
             <select
               className={inputClassName()}
               value={form.status}
@@ -771,7 +797,7 @@ export function AttendanceWorkspace() {
               }
             >
               <option value="" disabled>
-                Select status
+                {formFields[2]?.placeholder}
               </option>
               <option value="Present">Present</option>
               <option value="Absent">Absent</option>
@@ -780,7 +806,7 @@ export function AttendanceWorkspace() {
             </select>
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Work mode</span>
+            <span className="font-medium text-slate-700">{formFields[3]?.label}</span>
             <select
               className={inputClassName()}
               value={form.workMode}
@@ -789,7 +815,7 @@ export function AttendanceWorkspace() {
               }
             >
               <option value="" disabled>
-                Select work mode
+                {formFields[3]?.placeholder}
               </option>
               <option value="Office">Office</option>
               <option value="Remote">Remote</option>
@@ -797,7 +823,7 @@ export function AttendanceWorkspace() {
             </select>
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Check in</span>
+            <span className="font-medium text-slate-700">{formFields[4]?.label}</span>
             <input
               className={inputClassName()}
               type="time"
@@ -808,7 +834,7 @@ export function AttendanceWorkspace() {
             />
           </label>
           <label className="grid gap-2 text-sm">
-            <span className="font-medium text-slate-700">Check out</span>
+            <span className="font-medium text-slate-700">{formFields[5]?.label}</span>
             <input
               className={inputClassName()}
               type="time"
@@ -819,14 +845,14 @@ export function AttendanceWorkspace() {
             />
           </label>
           <label className="grid gap-2 text-sm md:col-span-2">
-            <span className="font-medium text-slate-700">Notes</span>
+            <span className="font-medium text-slate-700">{formFields[6]?.label}</span>
             <textarea
               className={textAreaClassName()}
               value={form.notes}
               onChange={(event) =>
                 setForm((current) => ({ ...current, notes: event.target.value }))
               }
-              placeholder="Optional attendance notes"
+              placeholder={formFields[6]?.placeholder}
             />
           </label>
           <div className="flex items-end">

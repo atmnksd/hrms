@@ -710,19 +710,18 @@ function EmployeeEditScreen({
 }
 
 function DepartmentsScreen({
-  screen: _screen,
+  screen,
   version: _version,
 }: {
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  void _screen
   void _version
-  return <DepartmentsWorkspace />
+  return <DepartmentsWorkspace screen={screen} />
 }
 
 function LeaveManagementScreen({
-  screen: _screen,
+  screen,
   version: _version,
   routeContext: _routeContext,
 }: {
@@ -730,22 +729,20 @@ function LeaveManagementScreen({
   version: VersionDefinition
   routeContext?: { employeeId?: string }
 }) {
-  void _screen
   void _version
   void _routeContext
-  return <LeaveManagementWorkspace />
+  return <LeaveManagementWorkspace screen={screen} />
 }
 
 function AttendanceScreen({
-  screen: _screen,
+  screen,
   version: _version,
 }: {
   screen: ScreenDefinition
   version: VersionDefinition
 }) {
-  void _screen
   void _version
-  return <AttendanceWorkspace />
+  return <AttendanceWorkspace screen={screen} />
 }
 
 function PayrollScreen({
@@ -855,6 +852,7 @@ function FormPanel({
     <SurfaceCard title={screen.formTitle ?? "Form workspace"} version={version}>
       <EmployeeEditorForm
         employeeId={routeContext?.employeeId}
+        fieldDefinitions={screen.fields}
         initialValues={buildEmployeeFormInitialValues(screen, routeContext)}
         mode={routeContext?.employeeId ? "edit" : "create"}
         primaryAction={screen.primaryAction}
@@ -892,6 +890,7 @@ function LoginPanel({
   return (
     <SurfaceCard title="Access portal" version={version}>
       <LoginForm
+        fieldDefinitions={screen.fields}
         primaryAction={screen.primaryAction}
         secondaryAction={screen.secondaryAction}
         versionId={version.id}

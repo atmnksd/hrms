@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation"
 import { startTransition, useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import type { ScreenField } from "@/lib/hrms-data"
 
 type LoginFormProps = {
   primaryAction: string
   secondaryAction?: string
   versionId: string
+  fieldDefinitions?: ScreenField[]
 }
 
 type EmployeeOption = {
@@ -27,6 +29,7 @@ type EmployeeEditorFormProps = {
   primaryAction: string
   secondaryAction?: string
   versionId: string
+  fieldDefinitions?: ScreenField[]
   initialValues: {
     fullName: string
     email: string
@@ -52,12 +55,21 @@ export function LoginForm({
   primaryAction,
   secondaryAction,
   versionId,
+  fieldDefinitions,
 }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const emailField = fieldDefinitions?.[0] ?? {
+    label: "Work email",
+    placeholder: "name@company.com",
+  }
+  const passwordField = fieldDefinitions?.[1] ?? {
+    label: "Password",
+    placeholder: "Enter your password",
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -104,24 +116,24 @@ export function LoginForm({
   return (
     <form className="grid gap-4" onSubmit={onSubmit}>
       <label className="grid gap-2 text-sm">
-        <span className="font-medium text-slate-700">Work email</span>
+        <span className="font-medium text-slate-700">{emailField.label}</span>
         <input
           className={inputClassName()}
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="name@company.com"
+          placeholder={emailField.placeholder}
           autoComplete="email"
         />
       </label>
       <label className="grid gap-2 text-sm">
-        <span className="font-medium text-slate-700">Password</span>
+        <span className="font-medium text-slate-700">{passwordField.label}</span>
         <input
           className={inputClassName()}
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          placeholder="Enter your password"
+          placeholder={passwordField.placeholder}
           autoComplete="current-password"
         />
       </label>
@@ -150,6 +162,7 @@ export function EmployeeEditorForm({
   primaryAction,
   secondaryAction,
   versionId,
+  fieldDefinitions,
   initialValues,
 }: EmployeeEditorFormProps) {
   const router = useRouter()
@@ -230,6 +243,80 @@ export function EmployeeEditorForm({
     setValues((current) => ({ ...current, [key]: value }))
   }
 
+  const fieldOrder = isCreate
+    ? ([
+        "fullName",
+        "email",
+        "departmentName",
+        "role",
+        "joiningDate",
+        "employmentType",
+        "manager",
+        "location",
+        "phoneNumber",
+        "emergencyContact",
+        "compensationBand",
+        "payrollBankStatus",
+        "status",
+      ] as const)
+    : ([
+        "fullName",
+        "email",
+        "role",
+        "departmentName",
+        "manager",
+        "employmentType",
+        "location",
+        "phoneNumber",
+        "emergencyContact",
+        "compensationBand",
+        "payrollBankStatus",
+        "joiningDate",
+        "status",
+      ] as const)
+
+  const fallbackFieldMeta = {
+    fullName: { label: "Full name", placeholder: "Enter full legal name" },
+    email: { label: "Work email", placeholder: "Enter corporate email" },
+    role: { label: "Role", placeholder: "Enter role" },
+    departmentName: { label: "Department", placeholder: "Select department" },
+    manager: { label: "Manager", placeholder: "Select manager" },
+    employmentType: {
+      label: "Employment type",
+      placeholder: "Select employment type",
+    },
+    location: { label: "Location", placeholder: "Enter location" },
+    phoneNumber: { label: "Phone number", placeholder: "Enter phone number" },
+    emergencyContact: {
+      label: "Emergency contact",
+      placeholder: "Enter emergency contact",
+    },
+    compensationBand: {
+      label: "Compensation band",
+      placeholder: "Enter compensation band",
+    },
+    payrollBankStatus: {
+      label: "Payroll bank status",
+      placeholder: "Select payroll bank status",
+    },
+    joiningDate: { label: "Joining date", placeholder: "Select joining date" },
+    status: { label: "Status", placeholder: "Select status" },
+  } satisfies Record<
+    keyof typeof initialValues,
+    { label: string; placeholder: string }
+  >
+
+  const fieldMeta = Object.fromEntries(
+    fieldOrder.map((key, index) => [
+      key,
+      {
+        label: fieldDefinitions?.[index]?.label ?? fallbackFieldMeta[key].label,
+        placeholder:
+          fieldDefinitions?.[index]?.placeholder ?? fallbackFieldMeta[key].placeholder,
+      },
+    ]),
+  ) as Record<keyof typeof initialValues, { label: string; placeholder: string }>
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsSubmitting(true)
@@ -276,42 +363,42 @@ export function EmployeeEditorForm({
     <form className="grid gap-5" onSubmit={onSubmit}>
       <div className="grid gap-4 md:grid-cols-2">
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Full name</span>
+          <span className="font-medium text-slate-700">{fieldMeta.fullName.label}</span>
           <input
             className={inputClassName()}
             value={values.fullName}
             onChange={(event) => updateField("fullName", event.target.value)}
-            placeholder={isCreate ? "Enter full legal name" : initialValues.fullName}
+            placeholder={isCreate ? fieldMeta.fullName.placeholder : initialValues.fullName}
           />
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Work email</span>
+          <span className="font-medium text-slate-700">{fieldMeta.email.label}</span>
           <input
             className={inputClassName()}
             type="email"
             value={values.email}
             onChange={(event) => updateField("email", event.target.value)}
-            placeholder={isCreate ? "Enter corporate email" : initialValues.email}
+            placeholder={isCreate ? fieldMeta.email.placeholder : initialValues.email}
           />
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Role</span>
+          <span className="font-medium text-slate-700">{fieldMeta.role.label}</span>
           <input
             className={inputClassName()}
             value={values.role}
             onChange={(event) => updateField("role", event.target.value)}
-            placeholder={isCreate ? "Enter role" : initialValues.role}
+            placeholder={isCreate ? fieldMeta.role.placeholder : initialValues.role}
           />
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Department</span>
+          <span className="font-medium text-slate-700">{fieldMeta.departmentName.label}</span>
           <select
             className={inputClassName()}
             value={values.departmentName}
             onChange={(event) => updateField("departmentName", event.target.value)}
           >
             <option value="" disabled>
-              {isCreate ? "Select department" : initialValues.departmentName}
+              {isCreate ? fieldMeta.departmentName.placeholder : initialValues.departmentName}
             </option>
             {departmentOptions.map((department) => (
               <option key={department.id} value={department.name}>
@@ -321,14 +408,14 @@ export function EmployeeEditorForm({
           </select>
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Manager</span>
+          <span className="font-medium text-slate-700">{fieldMeta.manager.label}</span>
           <select
             className={inputClassName()}
             value={values.manager}
             onChange={(event) => updateField("manager", event.target.value)}
           >
             <option value="" disabled>
-              {isCreate ? "Select manager" : initialValues.manager}
+              {isCreate ? fieldMeta.manager.placeholder : initialValues.manager}
             </option>
             {employeeOptions
               .filter((employee) => employee.fullName !== values.fullName)
@@ -340,14 +427,14 @@ export function EmployeeEditorForm({
           </select>
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Employment type</span>
+          <span className="font-medium text-slate-700">{fieldMeta.employmentType.label}</span>
           <select
             className={inputClassName()}
             value={values.employmentType}
             onChange={(event) => updateField("employmentType", event.target.value)}
           >
             <option value="" disabled>
-              Select employment type
+              {fieldMeta.employmentType.placeholder}
             </option>
             <option value="Full-time">Full-time</option>
             <option value="Contract">Contract</option>
@@ -355,54 +442,66 @@ export function EmployeeEditorForm({
           </select>
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Location</span>
+          <span className="font-medium text-slate-700">{fieldMeta.location.label}</span>
           <input
             className={inputClassName()}
             value={values.location}
             onChange={(event) => updateField("location", event.target.value)}
-            placeholder={isCreate ? "Enter location" : initialValues.location}
+            placeholder={isCreate ? fieldMeta.location.placeholder : initialValues.location}
           />
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Phone number</span>
+          <span className="font-medium text-slate-700">{fieldMeta.phoneNumber.label}</span>
           <input
             className={inputClassName()}
             value={values.phoneNumber}
             onChange={(event) => updateField("phoneNumber", event.target.value)}
-            placeholder={isCreate ? "Enter phone number" : initialValues.phoneNumber}
+            placeholder={
+              isCreate ? fieldMeta.phoneNumber.placeholder : initialValues.phoneNumber
+            }
           />
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Emergency contact</span>
+          <span className="font-medium text-slate-700">
+            {fieldMeta.emergencyContact.label}
+          </span>
           <input
             className={inputClassName()}
             value={values.emergencyContact}
             onChange={(event) => updateField("emergencyContact", event.target.value)}
             placeholder={
-              isCreate ? "Enter emergency contact" : initialValues.emergencyContact
+              isCreate
+                ? fieldMeta.emergencyContact.placeholder
+                : initialValues.emergencyContact
             }
           />
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Compensation band</span>
+          <span className="font-medium text-slate-700">
+            {fieldMeta.compensationBand.label}
+          </span>
           <input
             className={inputClassName()}
             value={values.compensationBand}
             onChange={(event) => updateField("compensationBand", event.target.value)}
             placeholder={
-              isCreate ? "Enter compensation band" : initialValues.compensationBand
+              isCreate
+                ? fieldMeta.compensationBand.placeholder
+                : initialValues.compensationBand
             }
           />
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Payroll bank status</span>
+          <span className="font-medium text-slate-700">
+            {fieldMeta.payrollBankStatus.label}
+          </span>
           <select
             className={inputClassName()}
             value={values.payrollBankStatus}
             onChange={(event) => updateField("payrollBankStatus", event.target.value)}
           >
             <option value="" disabled>
-              Select payroll bank status
+              {fieldMeta.payrollBankStatus.placeholder}
             </option>
             <option value="Verified">Verified</option>
             <option value="Mismatch">Mismatch</option>
@@ -410,7 +509,7 @@ export function EmployeeEditorForm({
           </select>
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Joining date</span>
+          <span className="font-medium text-slate-700">{fieldMeta.joiningDate.label}</span>
           <input
             className={inputClassName()}
             type="date"
@@ -419,14 +518,14 @@ export function EmployeeEditorForm({
           />
         </label>
         <label className="grid gap-2 text-sm">
-          <span className="font-medium text-slate-700">Status</span>
+          <span className="font-medium text-slate-700">{fieldMeta.status.label}</span>
           <select
             className={inputClassName()}
             value={values.status}
             onChange={(event) => updateField("status", event.target.value)}
           >
             <option value="" disabled>
-              Select status
+              {fieldMeta.status.placeholder}
             </option>
             <option value="Active">Active</option>
             <option value="Probation">Probation</option>

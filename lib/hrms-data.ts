@@ -380,6 +380,12 @@ const v0: VersionDefinition = {
         "Later versions may move the org chart action into the header.",
       ],
       cardsTitle: "Department groups",
+      fields: [
+        { label: "Department name", placeholder: "Enter department name" },
+        { label: "Lead", placeholder: "Select department lead" },
+        { label: "Budget status", placeholder: "Select budget status" },
+        { label: "Open roles", placeholder: "Enter open roles count" },
+      ],
       cards: [
         { title: "Engineering", description: "78 employees across product and platform squads." },
         { title: "Talent", description: "12 recruiters and coordinators driving current hiring plans." },
@@ -403,6 +409,12 @@ const v0: VersionDefinition = {
         "Queue-like page with action-driven rows.",
         "Can later evolve into tabs or filters without touching the route.",
         "Works well for intent-based locator healing scenarios.",
+      ],
+      fields: [
+        { label: "Employee", placeholder: "Select employee" },
+        { label: "Leave type", placeholder: "Select leave type" },
+        { label: "Start date", placeholder: "Select start date" },
+        { label: "End date", placeholder: "Select end date" },
       ],
       table: {
         title: "Pending leave actions",
@@ -431,6 +443,15 @@ const v0: VersionDefinition = {
         "Designed for card and summary-based locators.",
         "A useful page for visual diff demonstrations.",
         "Future versions may move from summary cards to denser operational language.",
+      ],
+      fields: [
+        { label: "Employee", placeholder: "Select employee" },
+        { label: "Work date", placeholder: "Select work date" },
+        { label: "Status", placeholder: "Select status" },
+        { label: "Work mode", placeholder: "Select work mode" },
+        { label: "Check in", placeholder: "Set check in time" },
+        { label: "Check out", placeholder: "Set check out time" },
+        { label: "Notes", placeholder: "Optional attendance notes" },
       ],
     },
     payroll: {
@@ -625,9 +646,16 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         ],
       },
       login: {
+        navLabel: "Workspace Login",
+        navHint: "Access flow",
+        eyebrow: "Workspace access",
         title: "Access the HR workspace",
         primaryAction: "Continue",
         secondaryAction: "Continue with SSO",
+        fields: [
+          { label: "Business email", placeholder: "Enter your business email" },
+          { label: "Access key", placeholder: "Enter your access password" },
+        ],
       },
       employeesList: {
         navLabel: "Employees",
@@ -711,9 +739,16 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
       departments: {
         navLabel: "Business Units",
         navHint: "Departments",
+        eyebrow: "Unit setup",
         title: "Business unit directory",
         primaryAction: "Add business unit",
         secondaryAction: "Open org chart",
+        fields: [
+          { label: "Business unit", placeholder: "Enter business unit name" },
+          { label: "Unit owner", placeholder: "Choose unit owner" },
+          { label: "Funding state", placeholder: "Choose funding state" },
+          { label: "Open seats", placeholder: "Enter open seat count" },
+        ],
       },
       leaveManagement: {
         navLabel: "Leave Desk",
@@ -722,6 +757,12 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Leave desk",
         primaryAction: "Create leave request",
         secondaryAction: "Open policy guide",
+        fields: [
+          { label: "Worker", placeholder: "Choose worker" },
+          { label: "Absence type", placeholder: "Choose absence type" },
+          { label: "From date", placeholder: "Select start date" },
+          { label: "To date", placeholder: "Select end date" },
+        ],
         table: {
           title: "Absence request board",
           columns: ["Worker", "Request type", "Coverage window", "Decision"],
@@ -740,6 +781,15 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Attendance hub",
         primaryAction: "Record attendance",
         secondaryAction: "Download register",
+        fields: [
+          { label: "Worker", placeholder: "Choose worker" },
+          { label: "Shift date", placeholder: "Choose shift date" },
+          { label: "Presence state", placeholder: "Choose presence state" },
+          { label: "Work pattern", placeholder: "Choose work pattern" },
+          { label: "Clock in", placeholder: "Choose clock in time" },
+          { label: "Clock out", placeholder: "Choose clock out time" },
+          { label: "Shift notes", placeholder: "Add shift notes" },
+        ],
       },
       payroll: {
         navHint: "Comp workflow",
@@ -832,6 +882,10 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Enter the workforce workspace",
         primaryAction: "Open workspace",
         secondaryAction: "Use enterprise sign-on",
+        fields: [
+          { label: "Work identity", placeholder: "Enter work identity" },
+          { label: "Security phrase", placeholder: "Enter security phrase" },
+        ],
       },
       employeesList: {
         navLabel: "People Directory",
@@ -870,9 +924,26 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
       employeeAdd: {
         navLabel: "New Person",
         navHint: "Roster intake",
+        eyebrow: "People intake",
         title: "Open people intake",
+        formTitle: "People intake workspace",
         primaryAction: "Create people record",
         secondaryAction: "Store draft",
+        fields: [
+          { label: "Worker name", placeholder: "Enter worker name" },
+          { label: "Business email", placeholder: "Enter business email" },
+          { label: "Org unit", placeholder: "Choose org unit" },
+          { label: "Assignment", placeholder: "Choose assignment" },
+          { label: "Start date", placeholder: "Choose start date" },
+          { label: "Worker type", placeholder: "Choose worker type" },
+          { label: "People lead", placeholder: "Choose people lead" },
+          { label: "Work site", placeholder: "Enter work site" },
+          { label: "Mobile", placeholder: "Enter mobile number" },
+          { label: "Emergency contact", placeholder: "Enter emergency contact" },
+          { label: "Comp band", placeholder: "Enter compensation band" },
+          { label: "Bank state", placeholder: "Choose bank state" },
+          { label: "Lifecycle", placeholder: "Choose lifecycle state" },
+        ],
       },
       employeeEdit: {
         navLabel: "Update Profile",
@@ -903,6 +974,12 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Org units",
         primaryAction: "Create org unit",
         secondaryAction: "Open org map",
+        fields: [
+          { label: "Org unit", placeholder: "Enter org unit name" },
+          { label: "Unit lead", placeholder: "Choose unit lead" },
+          { label: "Budget signal", placeholder: "Choose budget signal" },
+          { label: "Open headcount", placeholder: "Enter open headcount" },
+        ],
       },
       leaveManagement: {
         navLabel: "Time Away",
@@ -911,6 +988,12 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Time away queue",
         primaryAction: "Request time away",
         secondaryAction: "Open leave rules",
+        fields: [
+          { label: "Person", placeholder: "Choose person" },
+          { label: "Time-away type", placeholder: "Choose time-away type" },
+          { label: "Begin date", placeholder: "Choose begin date" },
+          { label: "Finish date", placeholder: "Choose finish date" },
+        ],
         table: {
           title: "Time away queue",
           columns: ["Person", "Request", "Date span", "Workflow state"],
@@ -928,6 +1011,15 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Presence board",
         primaryAction: "Capture attendance",
         secondaryAction: "Export attendance",
+        fields: [
+          { label: "Person", placeholder: "Choose person" },
+          { label: "Presence date", placeholder: "Choose presence date" },
+          { label: "Presence signal", placeholder: "Choose presence signal" },
+          { label: "Work setting", placeholder: "Choose work setting" },
+          { label: "Start mark", placeholder: "Choose start mark" },
+          { label: "End mark", placeholder: "Choose end mark" },
+          { label: "Presence notes", placeholder: "Add presence notes" },
+        ],
       },
       payroll: {
         navLabel: "Pay Admin",
@@ -1021,6 +1113,10 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
           "The shared authentication flow now uses a more branded entry experience while preserving the same meaning.",
         primaryAction: "Enter workspace",
         secondaryAction: "Use identity pass",
+        fields: [
+          { label: "Identity route", placeholder: "Enter identity route" },
+          { label: "Access phrase", placeholder: "Enter access phrase" },
+        ],
       },
       employeesList: {
         navLabel: "Roster Board",
@@ -1095,6 +1191,12 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Design grid",
         primaryAction: "Add org node",
         secondaryAction: "Launch org view",
+        fields: [
+          { label: "Org node", placeholder: "Capture org node name" },
+          { label: "Node owner", placeholder: "Assign node owner" },
+          { label: "Budget marker", placeholder: "Assign budget marker" },
+          { label: "Seat gap", placeholder: "Capture seat gap" },
+        ],
       },
       leaveManagement: {
         navLabel: "Absence",
@@ -1103,6 +1205,12 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Absence command",
         primaryAction: "Launch absence request",
         secondaryAction: "Inspect rulebook",
+        fields: [
+          { label: "Teammate", placeholder: "Assign teammate" },
+          { label: "Request signal", placeholder: "Assign request signal" },
+          { label: "Launch date", placeholder: "Choose launch date" },
+          { label: "Close date", placeholder: "Choose close date" },
+        ],
         table: {
           title: "Absence action board",
           columns: ["Teammate", "Request", "Window", "State"],
@@ -1120,6 +1228,15 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Pulse grid",
         primaryAction: "Log presence",
         secondaryAction: "Export pulse log",
+        fields: [
+          { label: "Teammate", placeholder: "Assign teammate" },
+          { label: "Pulse date", placeholder: "Choose pulse date" },
+          { label: "Pulse state", placeholder: "Choose pulse state" },
+          { label: "Mode signal", placeholder: "Choose mode signal" },
+          { label: "Pulse start", placeholder: "Choose pulse start" },
+          { label: "Pulse end", placeholder: "Choose pulse end" },
+          { label: "Command notes", placeholder: "Add command notes" },
+        ],
       },
       payroll: {
         navLabel: "Payrun Ops",
@@ -1211,6 +1328,10 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Unlock workspace",
         primaryAction: "Unlock HQ",
         secondaryAction: "Use identity provider",
+        fields: [
+          { label: "Identity key", placeholder: "Enter identity key" },
+          { label: "Unlock phrase", placeholder: "Enter unlock phrase" },
+        ],
       },
       employeesList: {
         navLabel: "Roster",
@@ -1250,9 +1371,26 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
       employeeAdd: {
         navLabel: "Intake",
         navHint: "Launch pad",
+        eyebrow: "Launch intake",
         title: "Profile intake pad",
+        formTitle: "Launchpad intake form",
         primaryAction: "Launch record",
         secondaryAction: "Park draft",
+        fields: [
+          { label: "Profile name", placeholder: "Capture profile name" },
+          { label: "Mail route", placeholder: "Capture business email" },
+          { label: "Cluster", placeholder: "Assign cluster" },
+          { label: "Craft", placeholder: "Assign craft" },
+          { label: "Start marker", placeholder: "Set start marker" },
+          { label: "Contract mode", placeholder: "Set contract mode" },
+          { label: "Owner", placeholder: "Assign owner" },
+          { label: "Base", placeholder: "Set work base" },
+          { label: "Call line", placeholder: "Capture call line" },
+          { label: "Emergency line", placeholder: "Capture emergency line" },
+          { label: "Level", placeholder: "Assign level" },
+          { label: "Bank gate", placeholder: "Set bank gate" },
+          { label: "State", placeholder: "Set profile state" },
+        ],
       },
       employeeEdit: {
         navLabel: "Profile Tune",
@@ -1283,6 +1421,12 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Org design",
         primaryAction: "Add org blueprint",
         secondaryAction: "Open structure canvas",
+        fields: [
+          { label: "Blueprint node", placeholder: "Enter blueprint node" },
+          { label: "Blueprint owner", placeholder: "Choose blueprint owner" },
+          { label: "Funding marker", placeholder: "Choose funding marker" },
+          { label: "Seat plan", placeholder: "Enter seat plan count" },
+        ],
       },
       leaveManagement: {
         navLabel: "Absence Grid",
@@ -1291,6 +1435,12 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Absence grid",
         primaryAction: "Launch time request",
         secondaryAction: "Inspect policy map",
+        fields: [
+          { label: "Roster item", placeholder: "Choose roster item" },
+          { label: "Time signal", placeholder: "Choose time signal" },
+          { label: "Open span", placeholder: "Choose open span" },
+          { label: "Close span", placeholder: "Choose close span" },
+        ],
         table: {
           title: "Absence coverage grid",
           columns: ["Teammate", "Time item", "Span", "Decision state"],
@@ -1308,6 +1458,15 @@ const versionDeltas: Record<Exclude<VersionId, "v0">, VersionDelta> = {
         title: "Presence grid",
         primaryAction: "Stamp presence",
         secondaryAction: "Download anomalies",
+        fields: [
+          { label: "Roster item", placeholder: "Choose roster item" },
+          { label: "Register date", placeholder: "Choose register date" },
+          { label: "Presence code", placeholder: "Choose presence code" },
+          { label: "Mode code", placeholder: "Choose mode code" },
+          { label: "Register in", placeholder: "Choose register in" },
+          { label: "Register out", placeholder: "Choose register out" },
+          { label: "Grid notes", placeholder: "Add grid notes" },
+        ],
       },
       payroll: {
         navLabel: "Payrun",
