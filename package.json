@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "deploy": "npm run build:cloudflare && opennextjs-cloudflare deploy",
+    "preview": "opennextjs-cloudflare preview",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
@@ -20,6 +23,7 @@
     "db:setup": "prisma migrate deploy && prisma db seed"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@types/pg": "^8.20.0",
@@ -50,6 +54,7 @@
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.107.1"
   }
 }
