@@ -25,7 +25,7 @@ import type {
 } from "@/lib/hrms-backend/types"
 
 const DEFAULT_EMPLOYEE_PASSWORD_HASH =
-  "$2b$10$rR3wCFZBchGJ.b/mF1JHquHPAUX6M.8nrnHHjKsGDAlf8Ddq4qM3m"
+  "$2b$10$TyGg/4.4UYa.og383ZLw9.C.2.cxEbUSbj531Y8Er0rr1S4bKZ5ke"
 
 type DbClient = {
   query: PoolClient["query"]

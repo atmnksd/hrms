@@ -49,6 +49,15 @@ npm run db:setup
 npm run dev
 ```
 
+After seeding, you can sign in with any seeded employee account.
+Try one of these usernames with password `Workgrid123!`:
+
+- `ava.patel@workgrid.example`
+- `noah.silva@workgrid.example`
+- `arjun.rao@workgrid.example`
+
+If this environment was seeded before August 19, 2026, the next seed run will update those seeded employee records to use the shared password above.
+
 You can stop the local database with:
 
 ```bash
@@ -70,8 +79,8 @@ prisma migrate deploy && prisma db seed && next build
 So a deployment with `DATABASE_URL` configured will:
 
 - apply any pending committed migrations
-- seed the base HRMS data on first deploy into an empty database
-- skip seeding on later deploys once employee records already exist
+- seed or resynchronize the base HRMS data, including seeded employee credentials
+- update existing seeded records when matching IDs already exist
 
 ## What gets created
 
@@ -89,4 +98,4 @@ The Prisma migration creates the operational tables used by the app:
 - `admin_tasks`
 - `dashboard_tasks`
 
-Base HRMS records are inserted automatically for a fresh environment. The deploy seed step checks whether the `employees` table already has data and becomes a no-op after initial bootstrap.
+Base HRMS records are inserted automatically for a fresh environment. The deploy seed step uses `INSERT ... ON CONFLICT DO UPDATE`, so later seed runs keep the standard sample records in sync.

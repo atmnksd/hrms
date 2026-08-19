@@ -13,6 +13,14 @@ type LoginFormProps = {
   fieldDefinitions?: ScreenField[]
 }
 
+const demoLoginUsers = [
+  "ava.patel@workgrid.example",
+  "noah.silva@workgrid.example",
+  "arjun.rao@workgrid.example",
+] as const
+
+const demoLoginPassword = "Workgrid123!"
+
 type EmployeeOption = {
   id: string
   fullName: string
@@ -142,6 +150,17 @@ export function LoginForm({
           {error}
         </div>
       ) : null}
+      <div className="rounded-[1rem] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        <p className="font-medium text-slate-900">Demo sign-in</p>
+        <p className="mt-1">
+          Try any seeded user below with password <code>{demoLoginPassword}</code>.
+        </p>
+        <div className="mt-2 flex flex-col gap-1 text-xs text-slate-600">
+          {demoLoginUsers.map((user) => (
+            <code key={user}>{user}</code>
+          ))}
+        </div>
+      </div>
       <div className="flex flex-wrap gap-2">
         <Button className="rounded-full px-4" disabled={isSubmitting} type="submit">
           {isSubmitting ? "Signing in..." : primaryAction}
